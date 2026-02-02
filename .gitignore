@@ -1,0 +1,37 @@
+# Build artifacts
+build/
+*.dmg
+*.app
+*.dSYM
+
+# Dependencies
+node_modules/
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+*.dSYM/
+.AppleDB
+.AppleDesktop
+ehthumbs.db
+
+# Temporary files
+*.log
+tmp/
+temp/
+.cache
+
+# Build outputs
+dist/
+out/
