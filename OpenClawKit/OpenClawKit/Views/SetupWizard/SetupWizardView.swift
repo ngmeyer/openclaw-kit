@@ -820,6 +820,7 @@ struct CompleteStepView: View {
                     
                     SummaryRow(label: "Gateway", value: viewModel.defaultGatewayURL)
                     SummaryRow(label: "AI Provider", value: viewModel.selectedProvider.rawValue)
+                    SummaryRow(label: "Model", value: viewModel.selectedProvider.defaultModel)
                     SummaryRow(
                         label: "Channels",
                         value: viewModel.selectedChannels.isEmpty 
@@ -829,6 +830,58 @@ struct CompleteStepView: View {
                 }
             }
             .frame(maxWidth: 400)
+            
+            // Pro Tips from Alex Finn
+            GlassCard(cornerRadius: 16, padding: 20) {
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack {
+                        Image(systemName: "lightbulb.fill")
+                            .foregroundColor(.coralAccent)
+                        Text("Pro Tips")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                    }
+                    
+                    Divider()
+                        .background(Color.white.opacity(0.1))
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        ProTipRow(
+                            tip: "Master the Onboarding",
+                            detail: "Tell your AI everything about yourself, goals, and work style"
+                        )
+                        ProTipRow(
+                            tip: "Give the Proactive Mandate",
+                            detail: "Explicitly grant permission for it to take initiative"
+                        )
+                        ProTipRow(
+                            tip: "Interview Your Bot",
+                            detail: "Ask: 'What are 10 things you can do for me I haven't thought of?'"
+                        )
+                        ProTipRow(
+                            tip: "Use Model Fallbacks",
+                            detail: "Your config includes automatic fallback to cheaper models"
+                        )
+                    }
+                }
+            }
+            .frame(maxWidth: 400)
+        }
+    }
+}
+
+struct ProTipRow: View {
+    let tip: String
+    let detail: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("• \(tip)")
+                .font(.subheadline.weight(.medium))
+                .foregroundColor(.white)
+            Text(detail)
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.6))
         }
     }
 }

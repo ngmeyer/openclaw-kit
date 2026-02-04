@@ -158,6 +158,21 @@ class SetupWizardViewModel: ObservableObject {
     let defaultGatewayURL = "http://localhost:18789"
     let defaultGatewayPort = 18789
     
+    // Model fallbacks based on Alex Finn's recommendations
+    // Use expensive models for thinking, cheap models for execution
+    var modelFallbacks: [String] {
+        switch selectedProvider {
+        case .nvidia:
+            return ["anthropic/claude-3-5-haiku-latest", "openai/gpt-4o-mini"]
+        case .anthropic:
+            return ["nvidia/kimi-k2.5", "anthropic/claude-3-5-haiku-latest"]
+        case .openAI:
+            return ["nvidia/kimi-k2.5", "openai/gpt-4o-mini"]
+        case .google:
+            return ["nvidia/kimi-k2.5", "google/gemini-2.0-flash"]
+        }
+    }
+    
     private var cancellables = Set<AnyCancellable>()
     private var installTask: Process?
     
@@ -466,7 +481,7 @@ class SetupWizardViewModel: ObservableObject {
             // Create config directory if needed
             try? FileManager.default.createDirectory(at: configDir, withIntermediateDirectories: true)
             
-            // Build configuration
+            // Build configuration with Alex Finn's best practices
             var config: [String: Any] = [
                 "gateway": [
                     "port": defaultGatewayPort,
@@ -476,22 +491,43 @@ class SetupWizardViewModel: ObservableObject {
                 "agents": [
                     "defaults": [
                         "workspace": FileManager.default.homeDirectoryForCurrentUser
-                            .appendingPathComponent("openclaw-workspace").path
+                            .appendingPathComponent("openclaw-workspace").path,
+                        // Model configuration with fallbacks (Alex Finn recommendation)
+                        "model": [
+                            "primary": selectedProvider.defaultModel,
+                            "fallbacks": modelFallbacks
+                        ]
                     ]
                 ]
             ]
             
             // Add provider config
-            if !apiKey.isEmpty {
+            if !apiKey.isEmpty || !selectedProvider.requiresApiKey {
                 let providerKey = selectedProvider.rawValue.lowercased()
-                config["auth"] = [
+                var authConfig: [String: Any] = [
                     "profiles": [
                         "\(providerKey):default": [
                             "provider": providerKey,
-                            "mode": "api_key"
+                            "mode": selectedProvider.requiresApiKey ? "api_key" : "none"
                         ]
                     ]
                 ]
+                
+                // Add fallback providers for rate limit handling
+                if selectedProvider != .nvidia {
+                    authConfig["profiles"] = [
+                        "\(providerKey):default": [
+                            "provider": providerKey,
+                            "mode": "api_key"
+                        ],
+                        "nvidia:fallback": [
+                            "provider": "nvidia",
+                            "mode": "none"  // Free tier
+                        ]
+                    ]
+                }
+                
+                config["auth"] = authConfig
             }
             
             // Add channel configs
