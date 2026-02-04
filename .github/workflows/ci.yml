@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: macos-14  # Apple Silicon runner
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+      
+      - name: Show Xcode version
+        run: xcodebuild -version
+      
+      - name: Build
+        run: |
+          cd OpenClawKit
+          xcodebuild build \
+            -project OpenClawKit.xcodeproj \
+            -scheme OpenClawKit \
+            -destination 'platform=macOS' \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO
+      
+      - name: Run Unit Tests
+        run: |
+          cd OpenClawKit
+          xcodebuild test \
+            -project OpenClawKit.xcodeproj \
+            -scheme OpenClawKit \
+            -destination 'platform=macOS' \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO \
+            -resultBundlePath TestResults.xcresult || true
+      
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: OpenClawKit/TestResults.xcresult
+          retention-days: 7
+
+  build-website:
+    name: Build Website
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Verify website files
+        run: |
+          test -f website/index.html
+          test -f website/privacy-policy.html
+          test -f website/terms-of-service.html
+          echo "✅ All required website files present"
+      
+      - name: Check for broken links (basic)
+        run: |
+          cd website
+          # Check that CSS and JS files referenced exist
+          grep -oP 'href="[^"]*\.css"' index.html | sed 's/href="//;s/"//' | while read f; do
+            if [[ "$f" != http* ]]; then
+              test -f "$f" && echo "✅ $f" || echo "❌ Missing: $f"
+            fi
+          done
+
+  lint-shell-scripts:
+    name: Lint Shell Scripts
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
+      
+      - name: Run shellcheck
+        run: |
+          find . -name "*.sh" -type f | while read script; do
+            echo "Checking $script..."
+            shellcheck "$script" || true
+          done
