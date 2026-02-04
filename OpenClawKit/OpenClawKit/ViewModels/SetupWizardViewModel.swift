@@ -178,7 +178,7 @@ class SetupWizardViewModel: ObservableObject {
     
     init() {
         initializeRequirements()
-        // Check for existing license
+        // Check for demo mode or existing license
         Task {
             await checkExistingLicense()
         }
@@ -187,6 +187,14 @@ class SetupWizardViewModel: ObservableObject {
     // MARK: - License Validation
     
     func checkExistingLicense() async {
+        // Demo mode: Skip license entirely
+        if OpenClawKitApp.isDemoMode {
+            print("🎭 [Demo] Skipping license check - demo mode active")
+            isLicenseValid = true
+            currentStep = .welcome
+            return
+        }
+        
         await licenseService.checkStoredLicense()
         isLicenseValid = licenseService.isLicensed
         if isLicenseValid {
