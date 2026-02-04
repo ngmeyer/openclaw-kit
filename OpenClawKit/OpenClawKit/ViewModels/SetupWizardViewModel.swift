@@ -3,15 +3,17 @@ import Combine
 import SwiftUI
 
 enum SetupStep: Int, CaseIterable {
-    case welcome = 0
-    case systemCheck = 1
-    case installation = 2
-    case apiSetup = 3
-    case channelSetup = 4
-    case complete = 5
+    case license = 0
+    case welcome = 1
+    case systemCheck = 2
+    case installation = 3
+    case apiSetup = 4
+    case channelSetup = 5
+    case complete = 6
     
     var title: String {
         switch self {
+        case .license: return "License"
         case .welcome: return "Welcome"
         case .systemCheck: return "System Check"
         case .installation: return "Installation"
@@ -23,6 +25,7 @@ enum SetupStep: Int, CaseIterable {
     
     var icon: String {
         switch self {
+        case .license: return "key.horizontal.fill"
         case .welcome: return "hand.wave.fill"
         case .systemCheck: return "checkmark.shield.fill"
         case .installation: return "arrow.down.circle.fill"
@@ -48,6 +51,7 @@ struct SystemRequirement: Identifiable {
 }
 
 enum AIProvider: String, CaseIterable, Identifiable {
+    case nvidia = "NVIDIA"
     case anthropic = "Anthropic"
     case openAI = "OpenAI"
     case google = "Google"
@@ -56,6 +60,7 @@ enum AIProvider: String, CaseIterable, Identifiable {
     
     var icon: String {
         switch self {
+        case .nvidia: return "cpu.fill"
         case .anthropic: return "brain.head.profile"
         case .openAI: return "sparkles"
         case .google: return "globe"
@@ -64,9 +69,26 @@ enum AIProvider: String, CaseIterable, Identifiable {
     
     var description: String {
         switch self {
+        case .nvidia: return "Kimi K2.5 - Free tier available"
         case .anthropic: return "Claude models - Recommended"
         case .openAI: return "GPT-4 and GPT-3.5"
         case .google: return "Gemini models"
+        }
+    }
+    
+    var defaultModel: String {
+        switch self {
+        case .nvidia: return "nvidia/kimi-k2.5"
+        case .anthropic: return "anthropic/claude-sonnet-4"
+        case .openAI: return "openai/gpt-4o"
+        case .google: return "google/gemini-2.0-flash"
+        }
+    }
+    
+    var requiresApiKey: Bool {
+        switch self {
+        case .nvidia: return false  // Free tier available
+        default: return true
         }
     }
 }
@@ -107,10 +129,16 @@ enum MessagingChannel: String, CaseIterable, Identifiable {
 @MainActor
 class SetupWizardViewModel: ObservableObject {
     // MARK: - Navigation
-    @Published var currentStep: SetupStep = .welcome
+    @Published var currentStep: SetupStep = .license
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     @Published var statusMessage: String = ""
+    
+    // MARK: - License
+    @Published var licenseKey: String = ""
+    @Published var isLicenseValid: Bool = false
+    @Published var licenseError: String?
+    let licenseService = LicenseService.shared
     
     // MARK: - System Check
     @Published var requirements: [SystemRequirement] = []
@@ -122,7 +150,7 @@ class SetupWizardViewModel: ObservableObject {
     @Published var isInstalled: Bool = false
     
     // MARK: - Configuration
-    @Published var selectedProvider: AIProvider = .anthropic
+    @Published var selectedProvider: AIProvider = .nvidia  // Default to free NVIDIA tier
     @Published var apiKey: String = ""
     @Published var selectedChannels: Set<MessagingChannel> = []
     
@@ -135,6 +163,48 @@ class SetupWizardViewModel: ObservableObject {
     
     init() {
         initializeRequirements()
+        // Check for existing license
+        Task {
+            await checkExistingLicense()
+        }
+    }
+    
+    // MARK: - License Validation
+    
+    func checkExistingLicense() async {
+        await licenseService.checkStoredLicense()
+        isLicenseValid = licenseService.isLicensed
+        if isLicenseValid {
+            // Skip to welcome if already licensed
+            currentStep = .welcome
+        }
+    }
+    
+    func activateLicense() async {
+        guard !licenseKey.isEmpty else {
+            licenseError = "Please enter a license key"
+            return
+        }
+        
+        isLoading = true
+        licenseError = nil
+        
+        let result = await licenseService.activate(licenseKey: licenseKey)
+        
+        switch result {
+        case .success:
+            isLicenseValid = true
+            licenseError = nil
+            // Auto-advance to welcome
+            withAnimation {
+                currentStep = .welcome
+            }
+        case .failure(let error):
+            isLicenseValid = false
+            licenseError = error.localizedDescription
+        }
+        
+        isLoading = false
     }
     
     // MARK: - Navigation
@@ -169,6 +239,8 @@ class SetupWizardViewModel: ObservableObject {
     
     var canGoNext: Bool {
         switch currentStep {
+        case .license:
+            return isLicenseValid
         case .welcome:
             return true
         case .systemCheck:
@@ -179,7 +251,7 @@ class SetupWizardViewModel: ObservableObject {
         case .installation:
             return isInstalled
         case .apiSetup:
-            return !apiKey.isEmpty
+            return !selectedProvider.requiresApiKey || !apiKey.isEmpty
         case .channelSetup:
             return true // Channels are optional
         case .complete:

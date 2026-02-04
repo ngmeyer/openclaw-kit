@@ -18,6 +18,8 @@ struct SetupWizardView: View {
                         // Step content
                         Group {
                             switch viewModel.currentStep {
+                            case .license:
+                                LicenseStepView(viewModel: viewModel)
                             case .welcome:
                                 WelcomeStepView(viewModel: viewModel)
                             case .systemCheck:
@@ -143,12 +145,149 @@ struct NavigationFooterView: View {
     
     private var nextButtonTitle: String {
         switch viewModel.currentStep {
+        case .license: return "Activate"
         case .welcome: return "Get Started"
         case .systemCheck: return "Continue"
         case .installation: return "Continue"
         case .apiSetup: return "Continue"
         case .channelSetup: return "Finish Setup"
         case .complete: return ""
+        }
+    }
+}
+
+// MARK: - License Step
+struct LicenseStepView: View {
+    @ObservedObject var viewModel: SetupWizardViewModel
+    @FocusState private var isLicenseFieldFocused: Bool
+    
+    var body: some View {
+        VStack(spacing: 32) {
+            // Hero section
+            VStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    Color.coralAccent.opacity(0.3),
+                                    Color.clear
+                                ],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: 80
+                            )
+                        )
+                        .frame(width: 160, height: 160)
+                    
+                    Image(systemName: "key.horizontal.fill")
+                        .font(.system(size: 64))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.coralAccent, .coralLight],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                }
+                
+                Text("Activate Your License")
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                
+                Text("Enter your license key to unlock OpenClawKit")
+                    .font(.title3)
+                    .foregroundColor(.white.opacity(0.7))
+                    .multilineTextAlignment(.center)
+            }
+            
+            // License input
+            GlassCard {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("License Key")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    
+                    TextField("XXXX-XXXX-XXXX-XXXX", text: $viewModel.licenseKey)
+                        .textFieldStyle(.plain)
+                        .font(.system(.body, design: .monospaced))
+                        .padding(12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.black.opacity(0.3))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                        )
+                        .focused($isLicenseFieldFocused)
+                        .onSubmit {
+                            Task {
+                                await viewModel.activateLicense()
+                            }
+                        }
+                    
+                    if let error = viewModel.licenseError {
+                        HStack(spacing: 8) {
+                            Image(systemName: "exclamationmark.circle.fill")
+                                .foregroundColor(.red)
+                            Text(error)
+                                .font(.caption)
+                                .foregroundColor(.red)
+                        }
+                    }
+                    
+                    if viewModel.isLicenseValid {
+                        HStack(spacing: 8) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                            Text("License activated successfully!")
+                                .font(.caption)
+                                .foregroundColor(.green)
+                        }
+                    }
+                    
+                    Button(action: {
+                        Task {
+                            await viewModel.activateLicense()
+                        }
+                    }) {
+                        HStack {
+                            if viewModel.isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .scaleEffect(0.8)
+                            }
+                            Text(viewModel.isLoading ? "Activating..." : "Activate License")
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(GlassButtonStyle(isProminent: true))
+                    .disabled(viewModel.licenseKey.isEmpty || viewModel.isLoading)
+                }
+            }
+            
+            // Purchase link
+            VStack(spacing: 12) {
+                Text("Don't have a license?")
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.6))
+                
+                Button(action: {
+                    if let url = URL(string: "https://openclawkit.com/#get-started") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "cart.fill")
+                        Text("Purchase OpenClawKit - $49.99")
+                    }
+                }
+                .buttonStyle(GlassButtonStyle(isProminent: false))
+            }
+        }
+        .onAppear {
+            isLicenseFieldFocused = true
         }
     }
 }
@@ -166,7 +305,7 @@ struct WelcomeStepView: View {
                         .fill(
                             RadialGradient(
                                 colors: [
-                                    Color(red: 0.4, green: 0.6, blue: 1.0).opacity(0.3),
+                                    Color.bluePrimary.opacity(0.3),
                                     Color.clear
                                 ],
                                 center: .center,
@@ -180,10 +319,7 @@ struct WelcomeStepView: View {
                         .font(.system(size: 64))
                         .foregroundStyle(
                             LinearGradient(
-                                colors: [
-                                    Color(red: 0.4, green: 0.6, blue: 1.0),
-                                    Color(red: 0.6, green: 0.4, blue: 1.0)
-                                ],
+                                colors: [.bluePrimary, .blueLight],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )

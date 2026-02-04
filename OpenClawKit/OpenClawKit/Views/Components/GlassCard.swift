@@ -53,12 +53,9 @@ struct GlassButtonStyle: ButtonStyle {
                     RoundedRectangle(cornerRadius: 12)
                         .fill(
                             LinearGradient(
-                                colors: [
-                                    Color(red: 0.4, green: 0.6, blue: 1.0),
-                                    Color(red: 0.6, green: 0.4, blue: 1.0)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+                                colors: [.coralAccent, .coralDark],
+                                startPoint: .top,
+                                endPoint: .bottom
                             )
                         )
                         .overlay {
@@ -112,12 +109,12 @@ struct FloatingOrbsBackground: View {
             // Dark base
             Color(red: 0.05, green: 0.05, blue: 0.1)
             
-            // Floating orbs
+            // Floating orbs - using brand colors
             Circle()
                 .fill(
                     RadialGradient(
                         colors: [
-                            Color(red: 0.3, green: 0.5, blue: 1.0).opacity(0.4),
+                            Color.bluePrimary.opacity(0.5),
                             Color.clear
                         ],
                         center: .center,
@@ -133,7 +130,7 @@ struct FloatingOrbsBackground: View {
                 .fill(
                     RadialGradient(
                         colors: [
-                            Color(red: 0.6, green: 0.3, blue: 1.0).opacity(0.3),
+                            Color.coralAccent.opacity(0.35),
                             Color.clear
                         ],
                         center: .center,
@@ -149,7 +146,7 @@ struct FloatingOrbsBackground: View {
                 .fill(
                     RadialGradient(
                         colors: [
-                            Color(red: 0.2, green: 0.8, blue: 0.8).opacity(0.2),
+                            Color.blueLight.opacity(0.25),
                             Color.clear
                         ],
                         center: .center,
@@ -201,7 +198,7 @@ struct StepProgressIndicator: View {
                         Rectangle()
                             .fill(
                                 step.rawValue < currentStep.rawValue
-                                    ? Color(red: 0.4, green: 0.6, blue: 1.0)
+                                    ? Color.coralAccent
                                     : Color.white.opacity(0.2)
                             )
                             .frame(height: 2)
@@ -215,9 +212,9 @@ struct StepProgressIndicator: View {
     
     private func stepColor(for step: SetupStep) -> Color {
         if step.rawValue < currentStep.rawValue {
-            return Color(red: 0.3, green: 0.8, blue: 0.5) // Completed - green
+            return Color.coralAccent // Completed - coral
         } else if step == currentStep {
-            return Color(red: 0.4, green: 0.6, blue: 1.0) // Current - blue
+            return Color.bluePrimary // Current - blue
         } else {
             return Color.white.opacity(0.2) // Future - dim
         }
@@ -245,7 +242,7 @@ struct SelectionCard<Content: View>: View {
                     Group {
                         if isSelected {
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(red: 0.4, green: 0.6, blue: 1.0).opacity(0.2))
+                                .fill(Color.coralAccent.opacity(0.2))
                         } else {
                             RoundedRectangle(cornerRadius: 12)
                                 .fill(.ultraThinMaterial)
@@ -255,7 +252,7 @@ struct SelectionCard<Content: View>: View {
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(
                                 isSelected 
-                                    ? Color(red: 0.4, green: 0.6, blue: 1.0)
+                                    ? Color.coralAccent
                                     : .white.opacity(0.1),
                                 lineWidth: isSelected ? 2 : 1
                             )
