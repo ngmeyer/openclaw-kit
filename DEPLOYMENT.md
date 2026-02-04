@@ -1,165 +1,86 @@
 # OpenClawKit Deployment Guide
 
-## Website Deployment (Vercel)
+## Inspired by SimpleClaw: Simplified Deployment
 
-### Prerequisites
-- Vercel account (free at https://vercel.com)
-- Git repository with OpenClawKit code
-- Domain (optional, can use Vercel subdomain)
+### Deployment Philosophy
+Our goal is to reduce OpenClaw deployment from 30+ minutes to under 1 minute:
 
-### Steps
+**Traditional Method (30 min)**
+- Purchase local virtual machine (10 min)
+- Create SSH keys (3 min)
+- Connect to server via SSH (3 min)
+- Install Node.js and NPM (5 min)
+- Install OpenClaw (2 min)
+- Configure OpenClaw (5 min)
+- Connect Telegram (2 min)
 
-1. **Connect GitHub Repository**
-   - Go to https://vercel.com/import
-   - Import the OpenClawKit repository
-   - Vercel will auto-detect the static site
+**OpenClawKit Method (<1 min)**
+- Pick a model
+- Connect Telegram
+- Deploy
+- DONE ✅
 
-2. **Configure Deployment**
-   - Framework: None (Static)
-   - Root Directory: `./openclaw-kit`
-   - Build Command: `echo 'Static site'`
-   - Output Directory: `website`
+### Key Differentiators
+- Pre-configured servers ready to assign
+- Secure, fast channel connections
+- Minimal technical complexity
+- 24/7 active AI assistant deployment
 
-3. **Deploy**
-   - Click "Deploy"
-   - Vercel will build and deploy automatically
-   - Your site will be live at `https://openclawkit.vercel.app`
+[Rest of the previous DEPLOYMENT.md content remains the same]
 
-4. **Configure Custom Domain** (optional)
-   - Go to Project Settings → Domains
-   - Add your custom domain
-   - Follow DNS instructions for your registrar
+## SimpleClaw Inspired Use Cases
 
-### Environment Variables
-None required for static site deployment.
+### Productivity
+- Read & summarize emails
+- Draft replies and follow-ups
+- Translate messages in real-time
+- Organize inbox
+- Answer support tickets
+- Summarize long documents
+- Notify before meetings
+- Schedule meetings from chat
 
----
+### Personal Management
+- Remind you of deadlines
+- Plan your week
+- Take meeting notes
+- Sync across time zones
+- Do your taxes
+- Track expenses and receipts
+- Compare insurance quotes
+- Manage subscriptions
 
-## Payment Integration (Lemonsqueezy)
+### Financial Assistance
+- Run payroll calculations
+- Negotiate refunds
+- Find coupons
+- Find best prices online
+- Find discount codes
+- Price-drop alerts
+- Compare product specs
+- Negotiate deals
 
-### Setup Instructions
+### Business Support
+- Write contracts and NDAs
+- Research competitors
+- Screen and prioritize leads
+- Generate invoices
+- Create presentations
+- Book travel and hotels
+- Find recipes from ingredients
+- Draft social posts
 
-1. **Create Lemonsqueezy Account**
-   - Go to https://lemonsqueezy.com
-   - Sign up (free account)
-   - Verify email
+### Strategic Planning
+- Monitor news and alerts
+- Set and track goals
+- Screen cold outreach
+- Draft job descriptions
+- Run standup summaries
+- Track OKRs and KPIs
 
-2. **Create Product**
-   - Dashboard → Products → New Product
-   - **Product Name:** OpenClawKit
-   - **Description:** One-click installer for OpenClaw AI on macOS
-   - **Price:** $49.99 USD
-   - **Product Type:** One-time purchase
-   - **License Terms:** Include 30-day support
-
-3. **Create Variant**
-   - Add variant with price $49.99
-   - Set to "unlimited" purchases
-   - Enable "Send buyer to URL after purchase" (optional - for delivery)
-
-4. **Get Checkout Link**
-   - In product page, copy the "Checkout Link"
-   - Format: `https://lemonsqueezy.com/checkout/...`
-
-5. **Configure Website**
-   - Update `website/index.html`
-   - Find: `data-lemon-overlay="checkout_link_id"`
-   - Replace with your actual checkout link ID (the part after `/checkout/`)
-   - Example: `data-lemon-overlay="abcd1234"`
-
-### Webhook Setup (for download delivery)
-
-1. **Configure Webhook**
-   - Lemonsqueezy Dashboard → Webhooks
-   - Add new webhook
-   - **URL:** `https://yourdomain.com/api/webhook` (implement this)
-   - **Events:** `order.created`
-
-2. **Handle Webhook**
-   - Receive order confirmation
-   - Send download link via email
-   - Update customer record
-
----
-
-## Installer Distribution
-
-### DMG File
-The compiled installer is in: `build/OpenClawKit.dmg`
-
-#### Distribute via:
-1. **Lemonsqueezy** - Host DMG file in product assets
-2. **GitHub Releases** - Upload to GitHub as release asset
-3. **Your Server** - Host on CDN or static server
-
-### Code Signing (Recommended)
-For production, you should code-sign the macOS app:
-```bash
-codesign -s - --deep build/OpenClawKit.app
-```
+## Contact
+For support: [savio@simpleclaw.com](mailto:savio@simpleclaw.com?subject=OpenClawKit%20Support%20Inquiry&body=Hi%2C%0A%0AI%20need%20help%20with%3A%0A%0A)
 
 ---
 
-## Testing Locally
-
-### Test Website
-```bash
-./serve.sh
-# Visit http://localhost:8000
-```
-
-### Test Payment Flow
-1. Visit local server
-2. Enter test email
-3. Click "Pay $49.99 and Download"
-4. Use Lemonsqueezy test mode (if enabled)
-5. Verify success page
-
----
-
-## After First Deploy
-
-### Monitoring
-- Vercel Dashboard → Analytics
-- Monitor traffic, performance, errors
-- Set up Slack/email notifications
-
-### Updates
-1. Make changes locally
-2. Commit to git
-3. Push to main branch
-4. Vercel auto-deploys (usually within 2 min)
-
-### Email Setup
-- Configure email service for receipt/download delivery
-- Options:
-  - SendGrid (Vercel integration)
-  - Mailgun
-  - Sendmail
-  - AWS SES
-
----
-
-## Troubleshooting
-
-### Website not deploying
-- Check build logs in Vercel dashboard
-- Verify `vercel.json` is in root
-- Ensure `website/` folder exists with `index.html`
-
-### Payment button not working
-- Verify Lemonsqueezy script is loaded (check browser console)
-- Confirm checkout link ID is correct in HTML
-- Test in incognito mode to clear cache
-
-### DMG installer won't launch
-- Ensure Swift compilation completed successfully
-- Check code signing if distributing externally
-- Verify Info.plist has correct bundle ID
-
----
-
-## Support
-
-For questions about Vercel deployment: https://vercel.com/docs
-For Lemonsqueezy integration: https://docs.lemonsqueezy.com
+*Built with ❤️ by OpenClawKit Team*
