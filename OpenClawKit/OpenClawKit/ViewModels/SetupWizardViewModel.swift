@@ -72,7 +72,7 @@ enum AIProvider: String, CaseIterable, Identifiable {
         case .nvidia: return "Kimi K2.5 - Free tier available"
         case .anthropic: return "Claude models - Recommended"
         case .openAI: return "GPT-4 and GPT-3.5"
-        case .google: return "Gemini models"
+        case .google: return "Gemini models - Free tier available"
         }
     }
     
@@ -86,9 +86,44 @@ enum AIProvider: String, CaseIterable, Identifiable {
     }
     
     var requiresApiKey: Bool {
+        return true // All providers need API keys
+    }
+    
+    var apiKeyURL: String {
         switch self {
-        case .nvidia: return false  // Free tier available
-        default: return true
+        case .nvidia: return "https://build.nvidia.com/settings/api-keys"
+        case .anthropic: return "https://console.anthropic.com/settings/keys"
+        case .openAI: return "https://platform.openai.com/api-keys"
+        case .google: return "https://aistudio.google.com/apikey"
+        }
+    }
+    
+    var setupInstructions: String {
+        switch self {
+        case .nvidia:
+            return "1. Click the link below to open NVIDIA\n2. Sign in or create a free NVIDIA account\n3. Click 'Generate API Key'\n4. Copy the key and paste it here"
+        case .anthropic:
+            return "1. Click the link below to open Anthropic Console\n2. Sign in or create an account\n3. Add billing information (pay-as-you-go)\n4. Go to API Keys → Create Key\n5. Copy the key and paste it here"
+        case .openAI:
+            return "1. Click the link below to open OpenAI Platform\n2. Sign in or create an account\n3. Add billing information (pay-as-you-go)\n4. Click 'Create new secret key'\n5. Copy the key and paste it here"
+        case .google:
+            return "1. Click the link below to open Google AI Studio\n2. Sign in with your Google account\n3. Click 'Create API Key'\n4. Copy the key and paste it here"
+        }
+    }
+    
+    var isFree: Bool {
+        switch self {
+        case .nvidia, .google: return true
+        case .anthropic, .openAI: return false
+        }
+    }
+    
+    var pricingNote: String {
+        switch self {
+        case .nvidia: return "✨ Free - No credit card required"
+        case .google: return "✨ Free tier available - No credit card required"
+        case .anthropic: return "💳 Pay-as-you-go - Credit card required"
+        case .openAI: return "💳 Pay-as-you-go - Credit card required"
         }
     }
 }

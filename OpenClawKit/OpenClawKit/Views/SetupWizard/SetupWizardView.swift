@@ -589,70 +589,126 @@ struct APISetupStepView: View {
                 .font(.system(size: 28, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
             
-            Text("Choose your AI provider and enter your API key")
+            Text("Choose your AI provider and get your API key")
                 .foregroundColor(.white.opacity(0.7))
             
-            // Provider selection
-            GlassCard(cornerRadius: 16, padding: 20) {
-                VStack(spacing: 12) {
-                    ForEach(AIProvider.allCases) { provider in
-                        SelectionCard(
-                            isSelected: viewModel.selectedProvider == provider,
-                            action: { viewModel.selectedProvider = provider }
-                        ) {
-                            HStack(spacing: 16) {
-                                Image(systemName: provider.icon)
-                                    .font(.title2)
-                                    .foregroundColor(viewModel.selectedProvider == provider ? .white : .white.opacity(0.6))
-                                    .frame(width: 32)
-                                
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(provider.rawValue)
-                                        .font(.headline)
-                                        .foregroundColor(.white)
+            HStack(alignment: .top, spacing: 24) {
+                // Provider selection (left side)
+                GlassCard(cornerRadius: 16, padding: 20) {
+                    VStack(spacing: 12) {
+                        ForEach(AIProvider.allCases) { provider in
+                            SelectionCard(
+                                isSelected: viewModel.selectedProvider == provider,
+                                action: { viewModel.selectedProvider = provider }
+                            ) {
+                                HStack(spacing: 16) {
+                                    Image(systemName: provider.icon)
+                                        .font(.title2)
+                                        .foregroundColor(viewModel.selectedProvider == provider ? .white : .white.opacity(0.6))
+                                        .frame(width: 32)
                                     
-                                    Text(provider.description)
-                                        .font(.caption)
-                                        .foregroundColor(.white.opacity(0.6))
-                                }
-                                
-                                Spacer()
-                                
-                                if viewModel.selectedProvider == provider {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(Color(red: 0.4, green: 0.6, blue: 1.0))
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        HStack {
+                                            Text(provider.rawValue)
+                                                .font(.headline)
+                                                .foregroundColor(.white)
+                                            if provider.isFree {
+                                                Text("FREE")
+                                                    .font(.caption2.bold())
+                                                    .foregroundColor(.green)
+                                                    .padding(.horizontal, 6)
+                                                    .padding(.vertical, 2)
+                                                    .background(Color.green.opacity(0.2))
+                                                    .cornerRadius(4)
+                                            }
+                                        }
+                                        
+                                        Text(provider.description)
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.6))
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    if viewModel.selectedProvider == provider {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(Color(red: 0.4, green: 0.6, blue: 1.0))
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
-            .frame(maxWidth: 500)
-            
-            // API Key input
-            GlassCard(cornerRadius: 16, padding: 20) {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("API Key")
-                        .font(.headline)
-                        .foregroundColor(.white)
+                .frame(maxWidth: 350)
+                
+                // Instructions and API Key (right side)
+                VStack(spacing: 16) {
+                    // Instructions card
+                    GlassCard(cornerRadius: 16, padding: 20) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Text("How to get your API key")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                Spacer()
+                                Text(viewModel.selectedProvider.pricingNote)
+                                    .font(.caption)
+                                    .foregroundColor(viewModel.selectedProvider.isFree ? .green : .orange)
+                            }
+                            
+                            Divider()
+                                .background(Color.white.opacity(0.1))
+                            
+                            Text(viewModel.selectedProvider.setupInstructions)
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.8))
+                                .lineSpacing(4)
+                            
+                            Button(action: {
+                                if let url = URL(string: viewModel.selectedProvider.apiKeyURL) {
+                                    NSWorkspace.shared.open(url)
+                                }
+                            }) {
+                                HStack {
+                                    Image(systemName: "arrow.up.right.square")
+                                    Text("Open \(viewModel.selectedProvider.rawValue) to get API key")
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(GlassButtonStyle(isProminent: true))
+                        }
+                    }
                     
-                    SecureField("Enter your \(viewModel.selectedProvider.rawValue) API key", text: $viewModel.apiKey)
-                        .textFieldStyle(.plain)
-                        .font(.system(.body, design: .monospaced))
-                        .padding(12)
-                        .background(Color.white.opacity(0.05))
-                        .cornerRadius(8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                        )
-                    
-                    Text("Your API key is stored locally and never sent to our servers")
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.5))
+                    // API Key input
+                    GlassCard(cornerRadius: 16, padding: 20) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Paste your API Key")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            
+                            SecureField("Enter your \(viewModel.selectedProvider.rawValue) API key", text: $viewModel.apiKey)
+                                .textFieldStyle(.plain)
+                                .font(.system(.body, design: .monospaced))
+                                .padding(12)
+                                .background(Color.white.opacity(0.05))
+                                .cornerRadius(8)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(viewModel.apiKey.isEmpty ? Color.white.opacity(0.1) : Color.green.opacity(0.5), lineWidth: 1)
+                                )
+                            
+                            HStack {
+                                Image(systemName: "lock.shield.fill")
+                                    .foregroundColor(.white.opacity(0.5))
+                                Text("Stored locally and never sent to our servers")
+                                    .font(.caption)
+                                    .foregroundColor(.white.opacity(0.5))
+                            }
+                        }
+                    }
                 }
+                .frame(maxWidth: 400)
             }
-            .frame(maxWidth: 500)
         }
     }
 }
