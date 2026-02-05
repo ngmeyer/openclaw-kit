@@ -8,8 +8,8 @@ struct PromptTemplate: Identifiable {
     let name: String
     let description: String
     let category: PromptCategory
-    let prompt: String
     let icon: String
+    let prompt: String
     
     enum PromptCategory: String, CaseIterable {
         case productivity = "Productivity"
