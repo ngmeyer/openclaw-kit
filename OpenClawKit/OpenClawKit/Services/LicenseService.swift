@@ -8,9 +8,9 @@ import IOKit
 class LicenseService: ObservableObject {
     static let shared = LicenseService()
     
-    // Lemonsqueezy configuration - UPDATE THESE
-    private let storeId = 0        // Your Lemonsqueezy store ID
-    private let productId = 0      // Your OpenClawKit product ID
+    // Lemonsqueezy configuration
+    private let storeId = 284970       // OpenClawKit store
+    private let productId = 811437     // OpenClawKit product
     private let licenseBaseURL = "https://api.lemonsqueezy.com/v1/licenses"
     
     // Keychain keys

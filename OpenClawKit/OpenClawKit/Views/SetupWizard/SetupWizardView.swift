@@ -274,7 +274,7 @@ struct LicenseStepView: View {
                     .foregroundColor(.white.opacity(0.6))
                 
                 Button(action: {
-                    if let url = URL(string: "https://openclawkit.com/#get-started") {
+                    if let url = URL(string: "https://openclawkit.lemonsqueezy.com/checkout/buy/7b279de2-56be-4f84-9049-e81c892b2bac") {
                         NSWorkspace.shared.open(url)
                     }
                 }) {
