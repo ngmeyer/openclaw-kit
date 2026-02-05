@@ -293,7 +293,7 @@ class SetupWizardViewModel: ObservableObject {
     private func initializeRequirements() {
         requirements = [
             SystemRequirement(name: "macOS Version", description: "macOS 12.0 or later", status: .checking),
-            SystemRequirement(name: "Node.js", description: "v18.0 or later required", status: .checking),
+            SystemRequirement(name: "Node.js", description: "v22.0 or later required", status: .checking),
             SystemRequirement(name: "Disk Space", description: "500MB free space required", status: .checking),
             SystemRequirement(name: "Network", description: "Internet connection required", status: .checking)
         ]
@@ -359,14 +359,14 @@ class SetupWizardViewModel: ObservableObject {
         if let version = result, version.hasPrefix("v") {
             let versionNum = version.dropFirst().split(separator: ".").first.flatMap { Int($0) } ?? 0
             print("🔍 [NodeCheck] Parsed version number: \(versionNum)")
-            if versionNum >= 18 {
+            if versionNum >= 22 {
                 updateRequirement(name: "Node.js", status: .passed)
             } else {
-                updateRequirement(name: "Node.js", status: .warning("Node.js \(version) found, v18+ recommended"))
+                updateRequirement(name: "Node.js", status: .warning("Node.js \(version) found - will upgrade to v22"))
             }
         } else {
             print("🔍 [NodeCheck] FAILED - result was nil or didn't start with 'v'")
-            updateRequirement(name: "Node.js", status: .warning("Not found - will install automatically"))
+            updateRequirement(name: "Node.js", status: .warning("Not found - will install v22 automatically"))
         }
     }
     
@@ -439,10 +439,18 @@ class SetupWizardViewModel: ObservableObject {
                 installationStatus = "Checking Node.js..."
                 try? await Task.sleep(nanoseconds: 500_000_000)
                 
-                let hasNode = await runShellCommand("which node") != nil
-                if !hasNode {
-                    installationStatus = "Installing Node.js via Homebrew..."
-                    _ = await runShellCommand("brew install node")
+                // Check for Node.js 22+ (OpenClaw requirement)
+                let nodeVersion = await runShellCommand("node --version")
+                let needsNode = nodeVersion == nil || {
+                    guard let v = nodeVersion, v.hasPrefix("v") else { return true }
+                    let major = Int(v.dropFirst().split(separator: ".").first ?? "") ?? 0
+                    return major < 22
+                }()
+                
+                if needsNode {
+                    installationStatus = "Installing Node.js 22 via Homebrew..."
+                    _ = await runShellCommand("brew install node@22")
+                    _ = await runShellCommand("brew link --overwrite node@22")
                 }
                 installationProgress = 0.4
                 
