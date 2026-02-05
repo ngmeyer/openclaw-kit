@@ -4,6 +4,24 @@ struct SetupWizardView: View {
     @StateObject private var viewModel = SetupWizardViewModel()
     
     var body: some View {
+        Group {
+            switch viewModel.appMode {
+            case .setup:
+                SetupWizardContent(viewModel: viewModel)
+            case .running:
+                OpenClawBrowserView(viewModel: viewModel)
+            }
+        }
+        .frame(minWidth: 900, minHeight: 750)
+        .preferredColorScheme(.dark)
+    }
+}
+
+// MARK: - Setup Wizard Content
+struct SetupWizardContent: View {
+    @ObservedObject var viewModel: SetupWizardViewModel
+    
+    var body: some View {
         ZStack {
             // Animated background
             FloatingOrbsBackground()
@@ -26,6 +44,8 @@ struct SetupWizardView: View {
                                 SystemCheckStepView(viewModel: viewModel)
                             case .installation:
                                 InstallationStepView(viewModel: viewModel)
+                            case .skillsSetup:
+                                SkillsSetupStepView(viewModel: viewModel)
                             case .apiSetup:
                                 APISetupStepView(viewModel: viewModel)
                             case .channelSetup:
@@ -47,8 +67,6 @@ struct SetupWizardView: View {
                 NavigationFooterView(viewModel: viewModel)
             }
         }
-        .frame(minWidth: 900, minHeight: 750)
-        .preferredColorScheme(.dark)
     }
 }
 
@@ -150,6 +168,7 @@ struct NavigationFooterView: View {
         case .welcome: return "Get Started"
         case .systemCheck: return "Continue"
         case .installation: return "Continue"
+        case .skillsSetup: return "Continue"
         case .apiSetup: return "Continue"
         case .channelSetup: return "Finish Setup"
         case .complete: return ""
@@ -163,9 +182,9 @@ struct LicenseStepView: View {
     @FocusState private var isLicenseFieldFocused: Bool
     
     var body: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: 24) {
             // Hero section
-            VStack(spacing: 16) {
+            VStack(spacing: 12) {
                 ZStack {
                     Circle()
                         .fill(
@@ -176,13 +195,13 @@ struct LicenseStepView: View {
                                 ],
                                 center: .center,
                                 startRadius: 0,
-                                endRadius: 80
+                                endRadius: 60
                             )
                         )
-                        .frame(width: 160, height: 160)
+                        .frame(width: 120, height: 120)
                     
                     Image(systemName: "key.horizontal.fill")
-                        .font(.system(size: 64))
+                        .font(.system(size: 48))
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [.coralAccent, .coralLight],
@@ -193,11 +212,11 @@ struct LicenseStepView: View {
                 }
                 
                 Text("Activate Your License")
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
                 
                 Text("Enter your license key to unlock OpenClawKit")
-                    .font(.title3)
+                    .font(.body)
                     .foregroundColor(.white.opacity(0.7))
                     .multilineTextAlignment(.center)
             }
@@ -298,74 +317,111 @@ struct WelcomeStepView: View {
     @ObservedObject var viewModel: SetupWizardViewModel
     
     var body: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: 28) {
             // Hero section
-            VStack(spacing: 16) {
-                ZStack {
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    Color.bluePrimary.opacity(0.3),
-                                    Color.clear
-                                ],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: 80
-                            )
+            VStack(spacing: 12) {
+                Image(systemName: "wand.and.stars")
+                    .font(.system(size: 44))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.bluePrimary, .blueLight],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
                         )
-                        .frame(width: 160, height: 160)
-                    
-                    Image(systemName: "wand.and.stars")
-                        .font(.system(size: 64))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.bluePrimary, .blueLight],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                }
+                    )
                 
                 Text("Welcome to OpenClawKit")
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
                 
                 Text("Your personal AI assistant, running locally on your Mac")
-                    .font(.title3)
+                    .font(.body)
                     .foregroundColor(.white.opacity(0.7))
                     .multilineTextAlignment(.center)
             }
             
-            // Feature cards
-            GlassCard(cornerRadius: 16, padding: 24) {
-                VStack(alignment: .leading, spacing: 20) {
-                    FeatureRow(
-                        icon: "lock.shield.fill",
-                        title: "Private & Secure",
-                        description: "Everything runs locally on your Mac"
+            // Setup steps preview (matches wizard order)
+            GlassCard(cornerRadius: 16, padding: 20) {
+                VStack(spacing: 0) {
+                    SetupPreviewRow(
+                        number: "1",
+                        icon: "arrow.down.circle.fill",
+                        title: "Install OpenClaw",
+                        description: "Core engine and dependencies",
+                        isLast: false
                     )
-                    
-                    FeatureRow(
-                        icon: "message.fill",
-                        title: "Multi-Channel",
-                        description: "Connect to Telegram, Discord, Slack, and more"
+                    SetupPreviewRow(
+                        number: "2",
+                        icon: "puzzlepiece.fill",
+                        title: "Configure Skills",
+                        description: "Weather, notes, reminders, and more",
+                        isLast: false
                     )
-                    
-                    FeatureRow(
+                    SetupPreviewRow(
+                        number: "3",
                         icon: "brain.head.profile",
-                        title: "Multiple AI Providers",
-                        description: "Use Claude, GPT-4, Gemini, or local models"
+                        title: "Connect AI Provider",
+                        description: "Claude, GPT-4, or Gemini",
+                        isLast: false
                     )
-                    
-                    FeatureRow(
-                        icon: "bolt.fill",
-                        title: "Quick Setup",
-                        description: "Up and running in under 5 minutes"
+                    SetupPreviewRow(
+                        number: "4",
+                        icon: "message.fill",
+                        title: "Add Channels",
+                        description: "Telegram, Discord, Slack (optional)",
+                        isLast: true
                     )
                 }
             }
-            .frame(maxWidth: 500)
+            .frame(maxWidth: 420)
+        }
+    }
+}
+
+struct SetupPreviewRow: View {
+    let number: String
+    let icon: String
+    let title: String
+    let description: String
+    let isLast: Bool
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 16) {
+                // Step number
+                ZStack {
+                    Circle()
+                        .stroke(Color(red: 0.4, green: 0.6, blue: 1.0).opacity(0.5), lineWidth: 1.5)
+                        .frame(width: 28, height: 28)
+                    
+                    Text(number)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(Color(red: 0.4, green: 0.6, blue: 1.0))
+                }
+                
+                Image(systemName: icon)
+                    .font(.body)
+                    .foregroundColor(.white.opacity(0.7))
+                    .frame(width: 24)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundColor(.white)
+                    
+                    Text(description)
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.5))
+                }
+                
+                Spacer()
+            }
+            .padding(.vertical, 14)
+            
+            if !isLast {
+                Divider()
+                    .background(Color.white.opacity(0.1))
+            }
         }
     }
 }
@@ -433,12 +489,6 @@ struct SystemCheckStepView: View {
                     viewModel.runSystemCheck()
                 }
                 .buttonStyle(GlassButtonStyle(isProminent: true))
-            }
-            
-            if viewModel.isLoading {
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    .scaleEffect(1.2)
             }
         }
     }
@@ -510,72 +560,353 @@ struct RequirementRow: View {
 struct InstallationStepView: View {
     @ObservedObject var viewModel: SetupWizardViewModel
     
+    private var hasStarted: Bool {
+        viewModel.isLoading || viewModel.installationProgress > 0
+    }
+    
     var body: some View {
         VStack(spacing: 24) {
             Text("Install OpenClaw")
                 .font(.system(size: 28, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
             
-            Text("We'll install OpenClaw and its dependencies")
+            Text(hasStarted ? viewModel.installationStatus : "Ready to install OpenClaw and dependencies")
                 .foregroundColor(.white.opacity(0.7))
             
-            GlassCard(cornerRadius: 16, padding: 32) {
-                VStack(spacing: 24) {
-                    // Progress ring
-                    ZStack {
-                        Circle()
-                            .stroke(Color.white.opacity(0.1), lineWidth: 8)
-                            .frame(width: 120, height: 120)
-                        
-                        Circle()
-                            .trim(from: 0, to: viewModel.installationProgress)
-                            .stroke(
-                                LinearGradient(
-                                    colors: [
-                                        Color(red: 0.4, green: 0.6, blue: 1.0),
-                                        Color(red: 0.6, green: 0.4, blue: 1.0)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                style: StrokeStyle(lineWidth: 8, lineCap: .round)
-                            )
-                            .frame(width: 120, height: 120)
-                            .rotationEffect(.degrees(-90))
-                            .animation(.easeInOut(duration: 0.3), value: viewModel.installationProgress)
-                        
-                        VStack(spacing: 4) {
-                            Text("\(Int(viewModel.installationProgress * 100))%")
-                                .font(.system(size: 28, weight: .bold, design: .rounded))
-                                .foregroundColor(.white)
+            // Progress bar and components
+            GlassCard(cornerRadius: 16, padding: 24) {
+                VStack(spacing: 20) {
+                    // Progress bar (always visible)
+                    VStack(spacing: 8) {
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(Color.white.opacity(0.1))
+                                    .frame(height: 8)
+                                
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [
+                                                Color(red: 0.4, green: 0.6, blue: 1.0),
+                                                Color(red: 0.6, green: 0.4, blue: 1.0)
+                                            ],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .frame(width: geo.size.width * viewModel.installationProgress, height: 8)
+                                    .animation(.easeInOut(duration: 0.3), value: viewModel.installationProgress)
+                            }
                         }
+                        .frame(height: 8)
+                        
+                        Text("\(Int(viewModel.installationProgress * 100))%")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.6))
                     }
                     
-                    Text(viewModel.installationStatus)
-                        .font(.headline)
-                        .foregroundColor(.white.opacity(0.8))
-                        .multilineTextAlignment(.center)
+                    Divider()
+                        .background(Color.white.opacity(0.1))
                     
-                    if !viewModel.isLoading && !viewModel.isInstalled {
-                        Button("Start Installation") {
+                    // Placeholder or component list
+                    if viewModel.installedComponents.isEmpty {
+                        // Placeholder before installation starts
+                        VStack(spacing: 16) {
+                            Image(systemName: "shippingbox.fill")
+                                .font(.system(size: 48))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [Color.white.opacity(0.4), Color.white.opacity(0.2)],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                )
+                            
+                            Text("Click Install to begin")
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.5))
+                        }
+                        .frame(height: 120)
+                        
+                        Button(action: {
                             viewModel.startInstallation()
+                        }) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "arrow.down.circle.fill")
+                                Text("Install Now")
+                            }
+                            .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(GlassButtonStyle(isProminent: true))
-                    }
-                    
-                    if viewModel.isInstalled {
-                        HStack(spacing: 8) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                            Text("Installation Complete")
-                                .foregroundColor(.green)
+                    } else {
+                        // Progressive component list
+                        VStack(spacing: 12) {
+                            ForEach(viewModel.installedComponents) { component in
+                                ComponentRow(component: component)
+                                    .transition(.asymmetric(
+                                        insertion: .move(edge: .top).combined(with: .opacity),
+                                        removal: .opacity
+                                    ))
+                            }
                         }
-                        .font(.headline)
+                        .animation(.easeOut(duration: 0.25), value: viewModel.installedComponents.count)
                     }
                 }
             }
-            .frame(maxWidth: 400)
+            .frame(maxWidth: 450)
         }
+    }
+}
+
+struct ComponentRow: View {
+    let component: InstalledComponent
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            // Status icon
+            Group {
+                switch component.status {
+                case .pending:
+                    Image(systemName: "circle")
+                        .foregroundColor(.white.opacity(0.3))
+                case .installing:
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(0.8)
+                case .installed:
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                case .failed:
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.red)
+                }
+            }
+            .frame(width: 24)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(component.name)
+                    .font(.headline)
+                    .foregroundColor(.white)
+                
+                Text(statusText)
+                    .font(.caption)
+                    .foregroundColor(statusColor)
+                    .lineLimit(1)
+            }
+            
+            Spacer()
+        }
+    }
+    
+    private var statusText: String {
+        switch component.status {
+        case .pending:
+            return "Waiting..."
+        case .installing:
+            return "Installing..."
+        case .installed:
+            return component.location
+        case .failed(let message):
+            return message
+        }
+    }
+    
+    private var statusColor: Color {
+        switch component.status {
+        case .pending: return .white.opacity(0.4)
+        case .installing: return .white.opacity(0.6)
+        case .installed: return .green.opacity(0.8)
+        case .failed: return .red.opacity(0.8)
+        }
+    }
+}
+
+// MARK: - Skills Setup Step
+struct SkillsSetupStepView: View {
+    @ObservedObject var viewModel: SetupWizardViewModel
+    
+    private var selectedSkill: SkillInfo? {
+        viewModel.selectedSkills.first { $0.id == viewModel.selectedSkillId }
+    }
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Included Skills")
+                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+            
+            Text("Select a skill to learn more")
+                .font(.subheadline)
+                .foregroundColor(.white.opacity(0.7))
+            
+            HStack(alignment: .top, spacing: 20) {
+                // Skills list (left)
+                GlassCard(cornerRadius: 16, padding: 16) {
+                    VStack(spacing: 8) {
+                        ForEach(viewModel.selectedSkills) { skill in
+                            SkillListRow(
+                                skill: skill,
+                                isSelected: skill.id == viewModel.selectedSkillId,
+                                action: { viewModel.selectedSkillId = skill.id }
+                            )
+                        }
+                    }
+                }
+                .frame(width: 200)
+                
+                // Skill detail panel (right)
+                if let skill = selectedSkill {
+                    SkillDetailPanel(
+                        skill: skill,
+                        userLocation: $viewModel.userLocation,
+                        isDetectingLocation: viewModel.isDetectingLocation
+                    )
+                }
+            }
+        }
+    }
+}
+
+struct SkillListRow: View {
+    let skill: SkillInfo
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: skill.icon)
+                    .font(.body)
+                    .foregroundColor(isSelected ? .white : .white.opacity(0.6))
+                    .frame(width: 22)
+                
+                Text(skill.name)
+                    .font(.subheadline.weight(isSelected ? .semibold : .regular))
+                    .foregroundColor(isSelected ? .white : .white.opacity(0.7))
+                
+                Spacer()
+                
+                if isSelected {
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.5))
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isSelected ? Color(red: 0.4, green: 0.6, blue: 1.0).opacity(0.2) : Color.clear)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct SkillDetailPanel: View {
+    let skill: SkillInfo
+    @Binding var userLocation: String
+    let isDetectingLocation: Bool
+    
+    var body: some View {
+        GlassCard(cornerRadius: 16, padding: 24) {
+            VStack(alignment: .leading, spacing: 20) {
+                // Header
+                HStack(spacing: 14) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color(red: 0.4, green: 0.6, blue: 1.0), Color(red: 0.6, green: 0.4, blue: 1.0)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 44, height: 44)
+                        
+                        Image(systemName: skill.icon)
+                            .font(.title3)
+                            .foregroundColor(.white)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(skill.name)
+                            .font(.title3.weight(.semibold))
+                            .foregroundColor(.white)
+                        
+                        Text(skill.tagline)
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.6))
+                    }
+                }
+                
+                Divider()
+                    .background(Color.white.opacity(0.1))
+                
+                // Description
+                Text(skill.description)
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.8))
+                    .lineSpacing(4)
+                
+                // Weather-specific: Location input
+                if skill.id == "weather" {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Default Location")
+                            .font(.caption.weight(.medium))
+                            .foregroundColor(.white.opacity(0.6))
+                        
+                        HStack {
+                            TextField("ZIP or City, State", text: $userLocation)
+                                .textFieldStyle(.plain)
+                                .padding(10)
+                                .background(Color.black.opacity(0.3))
+                                .cornerRadius(8)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                                )
+                            
+                            if isDetectingLocation {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .scaleEffect(0.7)
+                            }
+                        }
+                        
+                        Text("Optional — say \"weather in [city]\" anytime")
+                            .font(.caption2)
+                            .foregroundColor(.white.opacity(0.4))
+                    }
+                }
+                
+                // Example commands
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Try saying")
+                        .font(.caption.weight(.medium))
+                        .foregroundColor(.white.opacity(0.6))
+                    
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(skill.exampleCommands, id: \.self) { command in
+                            HStack(spacing: 8) {
+                                Image(systemName: "bubble.left.fill")
+                                    .font(.caption2)
+                                    .foregroundColor(Color(red: 0.4, green: 0.6, blue: 1.0))
+                                
+                                Text("\"\(command)\"")
+                                    .font(.caption)
+                                    .foregroundColor(.white.opacity(0.7))
+                                    .italic()
+                            }
+                        }
+                    }
+                }
+                
+                Spacer()
+            }
+        }
+        .frame(maxWidth: 340)
     }
 }
 
@@ -619,6 +950,14 @@ struct APISetupStepView: View {
                                                     .padding(.horizontal, 6)
                                                     .padding(.vertical, 2)
                                                     .background(Color.green.opacity(0.2))
+                                                    .cornerRadius(4)
+                                            } else if provider.isLowCost {
+                                                Text("LOW COST")
+                                                    .font(.caption2.bold())
+                                                    .foregroundColor(.orange)
+                                                    .padding(.horizontal, 6)
+                                                    .padding(.vertical, 2)
+                                                    .background(Color.orange.opacity(0.2))
                                                     .cornerRadius(4)
                                             }
                                         }
@@ -703,6 +1042,18 @@ struct APISetupStepView: View {
                                 Text("Stored locally and never sent to our servers")
                                     .font(.caption)
                                     .foregroundColor(.white.opacity(0.5))
+                            }
+                            
+                            // Validation message
+                            if viewModel.apiKey.isEmpty {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .foregroundColor(.orange)
+                                    Text("An API key is required to continue")
+                                        .font(.caption)
+                                        .foregroundColor(.orange)
+                                }
+                                .padding(.top, 4)
                             }
                         }
                     }
@@ -878,6 +1229,13 @@ struct CompleteStepView: View {
                     SummaryRow(label: "Gateway", value: viewModel.defaultGatewayURL)
                     SummaryRow(label: "AI Provider", value: viewModel.selectedProvider.rawValue)
                     SummaryRow(label: "Model", value: viewModel.selectedProvider.defaultModel)
+                    SummaryRow(
+                        label: "Skills",
+                        value: {
+                            let enabled = viewModel.selectedSkills.filter { $0.isEnabled }
+                            return enabled.isEmpty ? "None" : enabled.map { $0.name }.joined(separator: ", ")
+                        }()
+                    )
                     SummaryRow(
                         label: "Channels",
                         value: viewModel.selectedChannels.isEmpty 
