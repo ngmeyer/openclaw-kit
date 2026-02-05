@@ -267,6 +267,8 @@ class SetupWizardViewModel: ObservableObject {
         case .welcome:
             return true
         case .systemCheck:
+            // Allow proceeding with warnings (installer can fix those)
+            // Only block on hard failures
             return systemCheckComplete && !requirements.contains { 
                 if case .failed = $0.status { return true }
                 return false
@@ -364,7 +366,7 @@ class SetupWizardViewModel: ObservableObject {
             }
         } else {
             print("🔍 [NodeCheck] FAILED - result was nil or didn't start with 'v'")
-            updateRequirement(name: "Node.js", status: .failed("Node.js not found - will install via Homebrew"))
+            updateRequirement(name: "Node.js", status: .warning("Not found - will install automatically"))
         }
     }
     
