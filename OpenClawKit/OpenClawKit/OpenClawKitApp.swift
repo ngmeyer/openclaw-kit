@@ -20,7 +20,7 @@ struct OpenClawKitApp: App {
     var body: some Scene {
         WindowGroup {
             SetupWizardView()
-                .frame(minWidth: 700, minHeight: 600)
+                .frame(minWidth: 900, minHeight: 750)
                 .preferredColorScheme(.dark)
                 .environmentObject(DemoModeManager.shared)
         }

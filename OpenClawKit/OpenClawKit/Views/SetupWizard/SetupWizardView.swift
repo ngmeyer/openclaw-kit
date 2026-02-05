@@ -46,7 +46,7 @@ struct SetupWizardView: View {
                 NavigationFooterView(viewModel: viewModel)
             }
         }
-        .frame(minWidth: 700, minHeight: 600)
+        .frame(minWidth: 900, minHeight: 750)
         .preferredColorScheme(.dark)
     }
 }
