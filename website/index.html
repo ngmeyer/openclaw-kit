@@ -341,40 +341,23 @@
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8">
-                    <div class="get-started-card">
+                    <div class="get-started-card text-center">
                         <h2>Ready to Simplify Your OpenClaw Setup?</h2>
-                        <p class="lead">Get your OpenClaw AI assistant running in minutes, not hours.</p>
-                        <div id="payment-container" class="mt-4">
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email address</label>
-                                <input type="email" class="form-control" id="email" placeholder="you@example.com" required>
-                                <div class="form-text">We'll send your download link and receipt here.</div>
-                            </div>
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" id="newsletter" checked>
-                                <label class="form-check-label" for="newsletter">
-                                    Send me OpenClaw AI tips and updates (optional)
-                                </label>
-                            </div>
-                            
-                            <!-- Lemonsqueezy Embed -->
-                            <div id="lemonsqueezy-embed" class="mb-3">
-                                <a id="lemon-button" href="https://openclawkit.lemonsqueezy.com/checkout/buy/7b279de2-56be-4f84-9049-e81c892b2bac" class="btn btn-primary btn-lg w-100 lemonsqueezy-button">
-                                    Pay $49.99 and Download
-                                </a>
-                                <p class="mt-2 text-center">
-                                    <small class="text-muted">
-                                        You'll receive your download link via email after purchase
-                                    </small>
-                                </p>
-                            </div>
-                            
-                            <div class="mt-3 text-center">
-                                <small>
-                                    <img src="images/secure-payment.svg" alt="Secure Payment" height="20" class="me-2">
-                                    Secure payment via Lemonsqueezy
-                                </small>
-                            </div>
+                        <p class="lead mb-4">Get your OpenClaw AI assistant running in minutes, not hours.</p>
+                        
+                        <!-- Main CTA - LemonSqueezy Checkout -->
+                        <a href="https://openclawkit.lemonsqueezy.com/checkout/buy/7b279de2-56be-4f84-9049-e81c892b2bac" class="btn btn-primary btn-lg px-5 py-3 mb-3">
+                            <strong>Buy Now - $49.99</strong>
+                        </a>
+                        <p class="text-muted mb-4">
+                            One-time payment • Instant download • Lifetime updates
+                        </p>
+                        
+                        <div class="mt-3">
+                            <small>
+                                <img src="images/secure-payment.svg" alt="Secure Payment" height="20" class="me-2" onerror="this.style.display='none'">
+                                Secure payment via LemonSqueezy • 30-day money-back guarantee
+                            </small>
                         </div>
                     </div>
                 </div>
@@ -382,31 +365,24 @@
         </div>
     </section>
 
-    <!-- Free Guide Section -->
-    <section class="free-guide">
+    <!-- Newsletter Section -->
+    <section class="free-guide" id="newsletter">
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6">
-                    <div class="guide-image">
-                        <img src="images/guide-preview.png" alt="OpenClaw AI Setup Guide" class="img-fluid" style="max-height: 400px; object-fit: contain;">
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <h2>Not Ready to Buy Yet?</h2>
-                    <p class="lead">Get our free "OpenClaw AI Setup Guide" PDF</p>
-                    <p>Learn the basics of OpenClaw AI setup with our comprehensive guide that walks you through:</p>
-                    <ul>
-                        <li>Understanding AI API keys and OAuth</li>
-                        <li>Multiple messaging platform integration</li>
-                        <li>Node.js requirements and setup</li>
-                        <li>Common installation pitfalls and how to avoid them</li>
-                    </ul>
-                    <form id="guide-form" class="mt-4">
-                        <div class="input-group">
-                            <input type="email" class="form-control" placeholder="Your email address" required>
-                            <button class="btn btn-secondary" type="submit">Get Free Guide</button>
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    <h2>Stay in the Loop</h2>
+                    <p class="lead mb-4">Get OpenClaw tips, updates, and AI productivity insights delivered to your inbox.</p>
+                    
+                    <!-- Newsletter signup - connects to LemonSqueezy -->
+                    <form id="newsletter-form" class="row g-2 justify-content-center" action="https://openclawkit.lemonsqueezy.com/email-subscribe" method="POST">
+                        <div class="col-md-6">
+                            <input type="email" name="email" class="form-control form-control-lg" placeholder="you@example.com" required>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-secondary btn-lg w-100" type="submit">Subscribe</button>
                         </div>
                     </form>
+                    <p class="text-muted mt-3"><small>No spam, unsubscribe anytime. We respect your inbox.</small></p>
                 </div>
             </div>
         </div>
