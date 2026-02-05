@@ -34,6 +34,7 @@ struct SetupWizardView: View {
                                 CompleteStepView(viewModel: viewModel)
                             }
                         }
+                        .frame(maxWidth: .infinity) // Push scrollbar to window edge
                         .transition(.asymmetric(
                             insertion: .move(edge: .trailing).combined(with: .opacity),
                             removal: .move(edge: .leading).combined(with: .opacity)
