@@ -151,37 +151,37 @@ let defaultSkillsInfo: [SkillInfo] = [
 let defaultSkills = defaultSkillsInfo.map { $0.id }
 
 enum AIProvider: String, CaseIterable, Identifiable {
+    case openRouter = "OpenRouter"
     case anthropic = "Anthropic"
     case deepseek = "DeepSeek"
     case openAI = "OpenAI"
-    case google = "Google"
     
     var id: String { rawValue }
     
     var icon: String {
         switch self {
-        case .anthropic: return "brain.head.profile"
-        case .deepseek: return "bolt.fill"
-        case .openAI: return "sparkles"
-        case .google: return "globe"
+        case .openRouter: return "arrow.triangle.2.circlepath"  // Routing/network concept
+        case .anthropic: return "hexagon.fill"  // Geometric, modern feel
+        case .deepseek: return "wave.3.down"  // Deep/search concept
+        case .openAI: return "circle.grid.2x2"  // AI/neural network concept
         }
     }
     
     var description: String {
         switch self {
-        case .anthropic: return "Claude models - Recommended"
+        case .openRouter: return "One API key, 100+ models - Best value"
+        case .anthropic: return "Claude models - Best performance"
         case .deepseek: return "DeepSeek V3 - Very low cost"
         case .openAI: return "GPT-4 and GPT-4o"
-        case .google: return "Gemini models - Free tier available"
         }
     }
     
     var defaultModel: String {
         switch self {
+        case .openRouter: return "anthropic/claude-haiku-4-5"  // OpenRouter uses standard model IDs
         case .anthropic: return "anthropic/claude-haiku-4-5"
         case .deepseek: return "deepseek/deepseek-chat"
         case .openAI: return "openai/gpt-4o"
-        case .google: return "google/gemini-2.0-flash"
         }
     }
     
@@ -191,45 +191,44 @@ enum AIProvider: String, CaseIterable, Identifiable {
     
     var apiKeyURL: String {
         switch self {
+        case .openRouter: return "https://openrouter.ai/keys"
         case .anthropic: return "https://console.anthropic.com/settings/keys"
         case .deepseek: return "https://platform.deepseek.com/api_keys"
         case .openAI: return "https://platform.openai.com/api-keys"
-        case .google: return "https://aistudio.google.com/apikey"
         }
     }
     
     var setupInstructions: String {
         switch self {
+        case .openRouter:
+            return "1. Click the link below to open OpenRouter\n2. Sign in or create an account (GitHub/Google sign-in available)\n3. Add billing information (pay-as-you-go)\n4. Go to API Keys section\n5. Click 'Create Key' and copy it (starts with sk-or-v1-...)\n6. Paste it here\n\n💡 Tip: OpenRouter gives you access to 100+ models with one API key. Use anthropic/claude-haiku-4-5 for best results."
         case .anthropic:
             return "1. Click the link below to open Anthropic Console\n2. Sign in or create an account\n3. Add billing information (pay-as-you-go)\n4. Go to API Keys section\n5. Click 'Create Key' and copy it\n6. Paste it here\n\n💡 Tip: Anthropic offers competitive pricing. Claude Haiku is highly efficient for most tasks."
         case .deepseek:
             return "1. Click the link below to open DeepSeek Platform\n2. Sign in or create an account\n3. Add billing information\n4. Go to API Keys section\n5. Create a new API key and copy it\n6. Paste it here\n\n💡 Tip: DeepSeek offers extremely low pricing — great for high-volume use cases."
         case .openAI:
             return "1. Click the link below to open OpenAI Platform\n2. Sign in or create an account\n3. Add billing information (pay-as-you-go)\n4. Click 'Create new secret key'\n5. Copy the key and paste it here"
-        case .google:
-            return "1. Click the link below to open Google AI Studio\n2. Sign in with your Google account\n3. Click 'Create API Key'\n4. Copy the key and paste it here"
         }
     }
     
     var isFree: Bool {
         switch self {
-        case .google: return true
-        case .anthropic, .deepseek, .openAI: return false
+        case .openRouter, .anthropic, .deepseek, .openAI: return false
         }
     }
     
     var isLowCost: Bool {
         switch self {
         case .deepseek: return true
-        case .anthropic, .openAI, .google: return false
+        case .openRouter, .anthropic, .openAI: return false
         }
     }
     
     var pricingNote: String {
         switch self {
+        case .openRouter: return "🌐 One key, 100+ models"
         case .anthropic: return "💳 Pay-as-you-go"
         case .deepseek: return "💰 Very low cost"
-        case .google: return "✨ Free tier available"
         case .openAI: return "💳 Pay-as-you-go"
         }
     }
@@ -273,6 +272,9 @@ class SetupWizardViewModel: ObservableObject {
     // MARK: - App Mode
     @Published var appMode: AppMode = .setup
     
+    // P0: Loading state to prevent flash of setup screens on startup
+    @Published var isInitializing: Bool = true
+    
     // Persisted setup state
     @AppStorage("setupCompleted") private var setupCompleted: Bool = false
     
@@ -299,8 +301,9 @@ class SetupWizardViewModel: ObservableObject {
     @Published var installedComponents: [InstalledComponent] = []
     
     // MARK: - Configuration
-    @Published var selectedProvider: AIProvider = .anthropic  // Default to Anthropic (Claude Haiku as primary)
+    @Published var selectedProvider: AIProvider = .openRouter  // Default to OpenRouter (best value)
     @Published var apiKey: String = ""
+    @Published var selectedAIModel: String = "anthropic/claude-haiku-4-5"  // Default model
     @Published var selectedChannels: Set<MessagingChannel> = []
     
     // MARK: - Skills
@@ -312,28 +315,57 @@ class SetupWizardViewModel: ObservableObject {
     @Published var isDetectingLocation: Bool = false
     
     // MARK: - OpenClaw Defaults
-    let defaultGatewayURL = "http://localhost:18789"
+    let defaultGatewayURL = "http://127.0.0.1:18789"
     let defaultGatewayPort = 18789
     
     // Model fallbacks based on current gateway config
     var modelFallbacks: [String] {
+        // If user selected a specific model, use it as primary with provider-specific fallbacks
+        if !selectedAIModel.isEmpty {
+            var fallbacks = [selectedAIModel]
+            // Add provider-specific fallbacks (excluding the selected one)
+            let providerDefaults = defaultModelFallbacksForProvider()
+            fallbacks.append(contentsOf: providerDefaults.filter { $0 != selectedAIModel })
+            return fallbacks
+        }
+        
+        // Otherwise use provider defaults
+        return defaultModelFallbacksForProvider()
+    }
+    
+    private func defaultModelFallbacksForProvider() -> [String] {
         switch selectedProvider {
+        case .openRouter:
+            return ["anthropic/claude-sonnet-4-5", "anthropic/claude-opus-4-5", "deepseek/deepseek-v2", "moonshot/kimi-k2.5"]
         case .anthropic:
-            return ["anthropic/claude-opus-4-5", "deepseek/deepseek-v2", "moonshot/kimi-k2.5"]
+            return ["anthropic/claude-sonnet-4-5", "anthropic/claude-opus-4-5", "deepseek/deepseek-v2"]
         case .deepseek:
-            return ["anthropic/claude-haiku-4-5", "moonshot/kimi-k2.5", "google/gemini-2.0-flash"]
+            return ["anthropic/claude-haiku-4-5", "deepseek/deepseek-v2", "moonshot/kimi-k2.5"]
         case .openAI:
-            return ["anthropic/claude-opus-4-5", "deepseek/deepseek-v2", "openai/gpt-4o"]
-        case .google:
-            return ["anthropic/claude-opus-4-5", "deepseek/deepseek-v2", "google/gemini-2.0-flash"]
+            return ["anthropic/claude-haiku-4-5", "deepseek/deepseek-v2", "openai/gpt-4o"]
         }
     }
     
     private var cancellables = Set<AnyCancellable>()
     private var installTask: Process?
     
+    // P1: Task cancellation - track active async task
+    private var activeTask: Task<Void, Never>?
+    
     init() {
         initializeRequirements()
+        
+        // Watch for provider changes and automatically set default model
+        $selectedProvider
+            .sink { [weak self] provider in
+                guard let self = self else { return }
+                // Only auto-set if user hasn't manually selected a model
+                if self.selectedAIModel.isEmpty || self.selectedAIModel == self.selectedProvider.defaultModel {
+                    self.selectedAIModel = provider.defaultModel
+                }
+            }
+            .store(in: &cancellables)
+        
         // Check for demo mode or existing license
         Task {
             await checkExistingLicense()
@@ -347,6 +379,9 @@ class SetupWizardViewModel: ObservableObject {
                 }
                 appMode = .running
             }
+            
+            // P0: Done initializing, hide splash screen
+            isInitializing = false
         }
     }
     
@@ -456,7 +491,7 @@ class SetupWizardViewModel: ObservableObject {
         case .skillsSetup:
             return true // Skills are optional, location is optional
         case .apiSetup:
-            return !selectedProvider.requiresApiKey || !apiKey.isEmpty
+            return !selectedProvider.requiresApiKey || isApiKeyValid
         case .channelSetup:
             return true // Channels are optional
         case .complete:
@@ -466,6 +501,24 @@ class SetupWizardViewModel: ObservableObject {
     
     var progress: Double {
         Double(currentStep.rawValue) / Double(SetupStep.allCases.count - 1)
+    }
+    
+    // MARK: - API Key Validation
+    
+    var isApiKeyValid: Bool {
+        guard !apiKey.isEmpty else { return false }
+        
+        // Validate format based on provider
+        switch selectedProvider {
+        case .openRouter:
+            return apiKey.hasPrefix("sk-or-v1-") && apiKey.count > 20
+        case .anthropic:
+            return apiKey.hasPrefix("sk-ant-") && apiKey.count > 20
+        case .deepseek:
+            return apiKey.count > 20 // DeepSeek doesn't have a standard prefix
+        case .openAI:
+            return apiKey.hasPrefix("sk-") && apiKey.count > 20
+        }
     }
     
     // MARK: - System Check
@@ -481,6 +534,10 @@ class SetupWizardViewModel: ObservableObject {
     
     func runSystemCheck() {
         print("🚀 [SystemCheck] Starting system check...")
+        
+        // P1: Cancel previous task before starting new one
+        activeTask?.cancel()
+        
         isLoading = true
         systemCheckComplete = false
         // Only initialize if not already in checking state (handles direct calls)
@@ -488,26 +545,40 @@ class SetupWizardViewModel: ObservableObject {
             initializeRequirements()
         }
         
-        Task {
+        // P1: Use SystemCheckService instead of inline checks
+        let service = SystemCheckService.shared
+        
+        activeTask = Task {
+            // P1: Check for cancellation
+            guard !Task.isCancelled else { return }
+            
             print("🚀 [SystemCheck] Checking macOS version...")
-            // Check macOS version
-            await checkMacOSVersion()
+            let macOSResult = await service.checkMacOSVersion()
+            guard !Task.isCancelled else { return }
+            updateRequirement(name: macOSResult.name, status: macOSResult.status)
             try? await Task.sleep(nanoseconds: 300_000_000)
             
+            guard !Task.isCancelled else { return }
             print("🚀 [SystemCheck] Checking Node.js...")
-            // Check Node.js
-            await checkNodeJS()
+            let nodeResult = await service.checkNodeJS()
+            guard !Task.isCancelled else { return }
+            updateRequirement(name: nodeResult.name, status: nodeResult.status)
             try? await Task.sleep(nanoseconds: 300_000_000)
             
+            guard !Task.isCancelled else { return }
             print("🚀 [SystemCheck] Checking disk space...")
-            // Check disk space
-            await checkDiskSpace()
+            let diskResult = await service.checkDiskSpace()
+            guard !Task.isCancelled else { return }
+            updateRequirement(name: diskResult.name, status: diskResult.status)
             try? await Task.sleep(nanoseconds: 300_000_000)
             
+            guard !Task.isCancelled else { return }
             print("🚀 [SystemCheck] Checking network...")
-            // Check network
-            await checkNetwork()
+            let networkResult = await service.checkNetwork()
+            guard !Task.isCancelled else { return }
+            updateRequirement(name: networkResult.name, status: networkResult.status)
             
+            guard !Task.isCancelled else { return }
             print("🚀 [SystemCheck] All checks complete!")
             isLoading = false
             systemCheckComplete = true
@@ -520,85 +591,9 @@ class SetupWizardViewModel: ObservableObject {
             if allPassed {
                 print("✅ [SystemCheck] All passed - auto-advancing")
                 try? await Task.sleep(nanoseconds: 400_000_000) // Brief pause to show success
+                guard !Task.isCancelled else { return }
                 nextStep()
             }
-        }
-    }
-    
-    private func checkMacOSVersion() async {
-        let version = ProcessInfo.processInfo.operatingSystemVersion
-        let versionString = "\(version.majorVersion).\(version.minorVersion)"
-        
-        if version.majorVersion >= 12 {
-            updateRequirement(name: "macOS Version", status: .passed)
-        } else {
-            updateRequirement(name: "macOS Version", status: .failed("macOS \(versionString) found, 12.0+ required"))
-        }
-    }
-    
-    private func checkNodeJS() async {
-        print("🔍 [NodeCheck] Starting Node.js check...")
-        
-        // First try to find where node is
-        let whichResult = await runShellCommand("which node")
-        print("🔍 [NodeCheck] which node: \(whichResult ?? "nil")")
-        
-        // Also check common paths directly
-        let directCheck = await runShellCommand("ls -la /opt/homebrew/bin/node 2>/dev/null || echo 'not found'")
-        print("🔍 [NodeCheck] Direct /opt/homebrew/bin/node: \(directCheck ?? "nil")")
-        
-        let result = await runShellCommand("node --version")
-        print("🔍 [NodeCheck] node --version result: \(result ?? "nil")")
-        
-        if let version = result, version.hasPrefix("v") {
-            let versionNum = version.dropFirst().split(separator: ".").first.flatMap { Int($0) } ?? 0
-            print("🔍 [NodeCheck] Parsed version number: \(versionNum)")
-            if versionNum >= 22 {
-                updateRequirement(name: "Node.js", status: .passed)
-            } else {
-                updateRequirement(name: "Node.js", status: .warning("Node.js \(version) found - will upgrade to v22"))
-            }
-        } else {
-            print("🔍 [NodeCheck] FAILED - result was nil or didn't start with 'v'")
-            updateRequirement(name: "Node.js", status: .warning("Not found - will install v22 automatically"))
-        }
-    }
-    
-    private func checkDiskSpace() async {
-        let fileManager = FileManager.default
-        if let attrs = try? fileManager.attributesOfFileSystem(forPath: NSHomeDirectory()),
-           let freeSpace = attrs[.systemFreeSize] as? Int64 {
-            let freeGB = Double(freeSpace) / 1_000_000_000
-            if freeGB >= 0.5 {
-                updateRequirement(name: "Disk Space", status: .passed)
-            } else {
-                updateRequirement(name: "Disk Space", status: .failed("Only \(String(format: "%.1f", freeGB))GB free"))
-            }
-        } else {
-            updateRequirement(name: "Disk Space", status: .warning("Could not check disk space"))
-        }
-    }
-    
-    private func checkNetwork() async {
-        print("🌐 [NetworkCheck] Starting network check...")
-        
-        // First check if curl exists
-        let whichCurl = await runShellCommand("which curl")
-        print("🌐 [NetworkCheck] which curl: \(whichCurl ?? "nil")")
-        
-        // Try a simpler test first
-        let pingTest = await runShellCommand("curl -s --max-time 5 -I https://registry.npmjs.org | head -1")
-        print("🌐 [NetworkCheck] curl HEAD test: \(pingTest ?? "nil")")
-        
-        let result = await runShellCommand("curl -s --max-time 5 -o /dev/null -w '%{http_code}' https://registry.npmjs.org")
-        print("🌐 [NetworkCheck] HTTP status code result: '\(result ?? "nil")'")
-        
-        if result == "200" {
-            print("🌐 [NetworkCheck] SUCCESS - got 200")
-            updateRequirement(name: "Network", status: .passed)
-        } else {
-            print("🌐 [NetworkCheck] FAILED - expected '200', got '\(result ?? "nil")'")
-            updateRequirement(name: "Network", status: .failed("Cannot reach npm registry (got: \(result ?? "nil"))"))
         }
     }
     
@@ -621,6 +616,9 @@ class SetupWizardViewModel: ObservableObject {
         // Prevent double-starting
         guard !isLoading && !isInstalled else { return }
         
+        // P1: Cancel previous task before starting new one
+        activeTask?.cancel()
+        
         isLoading = true
         installationProgress = 0
         installationStatus = "Preparing..."
@@ -630,33 +628,41 @@ class SetupWizardViewModel: ObservableObject {
         if OpenClawKitApp.isDemoMode {
             print("🎭 [Demo] Skipping installation - demo mode active")
             
-            Task {
+            activeTask = Task {
+                guard !Task.isCancelled else { return }
                 // Homebrew - add then update
                 addComponent("Homebrew", status: .installing)
                 installationStatus = "Checking Homebrew..."
                 installationProgress = 0.1
                 try? await Task.sleep(nanoseconds: 350_000_000)
+                guard !Task.isCancelled else { return }
                 updateComponent("Homebrew", status: .installed, location: "/opt/homebrew")
                 installationProgress = 0.2
                 
                 // Node.js
+                guard !Task.isCancelled else { return }
                 addComponent("Node.js", status: .installing)
                 installationStatus = "Checking Node.js..."
                 try? await Task.sleep(nanoseconds: 350_000_000)
+                guard !Task.isCancelled else { return }
                 updateComponent("Node.js", status: .installed, location: "/opt/homebrew/bin/node (v22.0.0)")
                 installationProgress = 0.4
                 
                 // OpenClaw
+                guard !Task.isCancelled else { return }
                 addComponent("OpenClaw", status: .installing)
                 installationStatus = "Installing OpenClaw..."
                 try? await Task.sleep(nanoseconds: 500_000_000)
+                guard !Task.isCancelled else { return }
                 updateComponent("OpenClaw", status: .installed, location: "/opt/homebrew/bin/openclaw")
                 installationProgress = 0.7
                 
                 // Skills
+                guard !Task.isCancelled else { return }
                 addComponent("Skills", status: .installing)
                 installationStatus = "Installing skills..."
                 try? await Task.sleep(nanoseconds: 400_000_000)
+                guard !Task.isCancelled else { return }
                 let skillList = defaultSkills.joined(separator: ", ")
                 updateComponent("Skills", status: .installed, location: skillList)
                 installationProgress = 1.0
@@ -668,13 +674,17 @@ class SetupWizardViewModel: ObservableObject {
             return
         }
         
-        Task {
+        activeTask = Task {
+            guard !Task.isCancelled else { return }
+            
             // Step 1: Check Homebrew
             addComponent("Homebrew", status: .installing)
             installationStatus = "Checking Homebrew..."
             installationProgress = 0.1
             
+            guard !Task.isCancelled else { return }
             let brewPath = await runShellCommand("which brew")
+            guard !Task.isCancelled else { return }
             if let path = brewPath {
                 updateComponent("Homebrew", status: .installed, location: path)
             } else {
@@ -684,12 +694,16 @@ class SetupWizardViewModel: ObservableObject {
             try? await Task.sleep(nanoseconds: 200_000_000)
             
             // Step 2: Check/Install Node.js
+            guard !Task.isCancelled else { return }
             addComponent("Node.js", status: .installing)
             installationStatus = "Checking Node.js..."
             installationProgress = 0.35
             
+            guard !Task.isCancelled else { return }
             var nodeVersion = await runShellCommand("node --version")
+            guard !Task.isCancelled else { return }
             var nodePath = await runShellCommand("which node")
+            guard !Task.isCancelled else { return }
             let needsNode = nodeVersion == nil || {
                 guard let v = nodeVersion, v.hasPrefix("v") else { return true }
                 let major = Int(v.dropFirst().split(separator: ".").first ?? "") ?? 0
@@ -698,12 +712,17 @@ class SetupWizardViewModel: ObservableObject {
             
             if needsNode {
                 installationStatus = "Installing Node.js 22..."
+                guard !Task.isCancelled else { return }
                 _ = await runShellCommand("brew install node@22")
+                guard !Task.isCancelled else { return }
                 _ = await runShellCommand("brew link --overwrite node@22")
+                guard !Task.isCancelled else { return }
                 nodeVersion = await runShellCommand("node --version")
+                guard !Task.isCancelled else { return }
                 nodePath = await runShellCommand("which node")
             }
             
+            guard !Task.isCancelled else { return }
             if let path = nodePath, let version = nodeVersion {
                 updateComponent("Node.js", status: .installed, location: "\(path) (\(version))")
             } else {
@@ -713,15 +732,21 @@ class SetupWizardViewModel: ObservableObject {
             try? await Task.sleep(nanoseconds: 200_000_000)
             
             // Step 3: Install OpenClaw
+            guard !Task.isCancelled else { return }
             addComponent("OpenClaw", status: .installing)
             installationStatus = "Installing OpenClaw..."
             installationProgress = 0.65
             
+            guard !Task.isCancelled else { return }
             _ = await runShellCommand("npm install -g openclaw")
+            guard !Task.isCancelled else { return }
             installationProgress = 0.85
             
+            guard !Task.isCancelled else { return }
             let openclawPath = await runShellCommand("which openclaw")
+            guard !Task.isCancelled else { return }
             let openclawVersion = await runShellCommand("openclaw --version")
+            guard !Task.isCancelled else { return }
             
             if let path = openclawPath {
                 let loc = openclawVersion != nil ? "\(path) (\(openclawVersion!))" : path
@@ -729,11 +754,13 @@ class SetupWizardViewModel: ObservableObject {
                 installationProgress = 0.7
                 
                 // Step 4: Install default skills
+                guard !Task.isCancelled else { return }
                 addComponent("Skills", status: .installing)
                 installationStatus = "Installing skills..."
                 
                 var installedSkillNames: [String] = []
                 for skill in defaultSkills {
+                    guard !Task.isCancelled else { return }
                     // Skills are bundled with OpenClaw, just need to verify they exist
                     let skillPath = await runShellCommand("ls /opt/homebrew/lib/node_modules/openclaw/skills/\(skill)/SKILL.md 2>/dev/null")
                     if skillPath != nil {
@@ -741,6 +768,7 @@ class SetupWizardViewModel: ObservableObject {
                     }
                 }
                 
+                guard !Task.isCancelled else { return }
                 if !installedSkillNames.isEmpty {
                     updateComponent("Skills", status: .installed, location: installedSkillNames.joined(separator: ", "))
                 } else {
@@ -803,7 +831,7 @@ class SetupWizardViewModel: ObservableObject {
                             .appendingPathComponent("openclaw-workspace").path,
                         // Model configuration with fallbacks (Alex Finn recommendation)
                         "model": [
-                            "primary": selectedProvider.defaultModel,
+                            "primary": !selectedAIModel.isEmpty ? selectedAIModel : selectedProvider.defaultModel,
                             "fallbacks": modelFallbacks
                         ]
                     ]
@@ -884,15 +912,24 @@ class SetupWizardViewModel: ObservableObject {
         isDetectingLocation = true
         
         Task {
-            if let location = await LocationService.shared.detectLocation() {
+            // Silently attempt location detection - don't show errors to user
+            // They can always type manually if this fails
+            let location = await LocationService.shared.detectLocation()
+            
+            if let loc = location {
                 let formatted = LocationService.shared.formatLocation(
-                    city: location.city,
-                    region: location.region,
-                    zip: location.zip
+                    city: loc.city,
+                    region: loc.region,
+                    zip: loc.zip
                 )
-                userLocation = formatted
+                await MainActor.run {
+                    userLocation = formatted
+                }
             }
-            isDetectingLocation = false
+            
+            await MainActor.run {
+                isDetectingLocation = false
+            }
         }
     }
     
@@ -953,5 +990,7 @@ class SetupWizardViewModel: ObservableObject {
     
     deinit {
         cancellables.forEach { $0.cancel() }
+        // P1: Cancel active task on deinit
+        activeTask?.cancel()
     }
 }

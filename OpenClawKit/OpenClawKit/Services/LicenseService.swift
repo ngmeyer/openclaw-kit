@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import Combine
 import IOKit
 
 // MARK: - License Service
@@ -13,6 +14,22 @@ class LicenseService: ObservableObject {
     private let storeId = 284970       // OpenClawKit store
     private let productId = 811437     // OpenClawKit product
     private let licenseBaseURL = "https://api.lemonsqueezy.com/v1/licenses"
+    
+    // Test mode: Enable for development testing
+    // In test mode, use card 4242 4242 4242 4242, any future date, any CVC
+    #if DEBUG
+    static let isTestMode = true
+    #else
+    static let isTestMode = false
+    #endif
+    
+    // Checkout URLs
+    static let liveCheckoutURL = "https://openclawkit.lemonsqueezy.com/buy/7b279de2-56be-4f84-9049-e81c892b2bac"
+    static let testCheckoutURL = "https://openclawkit.lemonsqueezy.com/buy/7b279de2-56be-4f84-9049-e81c892b2bac?test=true"
+    
+    static var checkoutURL: String {
+        isTestMode ? testCheckoutURL : liveCheckoutURL
+    }
     
     // Keychain keys
     private let licenseKeyKey = "license_key"

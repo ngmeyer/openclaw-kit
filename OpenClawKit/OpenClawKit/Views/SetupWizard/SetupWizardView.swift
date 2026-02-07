@@ -5,15 +5,67 @@ struct SetupWizardView: View {
     
     var body: some View {
         Group {
-            switch viewModel.appMode {
-            case .setup:
-                SetupWizardContent(viewModel: viewModel)
-            case .running:
-                OpenClawBrowserView(viewModel: viewModel)
+            if viewModel.isInitializing {
+                // P0: Splash screen while checking license/setup state
+                SplashScreenView()
+            } else {
+                switch viewModel.appMode {
+                case .setup:
+                    SetupWizardContent(viewModel: viewModel)
+                case .running:
+                    OpenClawBrowserView(viewModel: viewModel)
+                }
             }
         }
         .frame(minWidth: 900, minHeight: 750)
         .preferredColorScheme(.dark)
+    }
+}
+
+// MARK: - Splash Screen (P0: Prevents flash of setup screens)
+struct SplashScreenView: View {
+    var body: some View {
+        ZStack {
+            // Background matching the app theme
+            Color(red: 0.08, green: 0.08, blue: 0.12)
+                .ignoresSafeArea()
+            
+            // Animated orbs background (same as wizard)
+            FloatingOrbsBackground()
+            
+            VStack(spacing: 24) {
+                // Logo
+                HStack(spacing: 12) {
+                    Image(systemName: "terminal.fill")
+                        .font(.system(size: 48))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 0.4, green: 0.6, blue: 1.0),
+                                    Color(red: 0.6, green: 0.4, blue: 1.0)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                    
+                    Text("OpenClawKit")
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                }
+                
+                // Loading indicator
+                VStack(spacing: 12) {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(1.2)
+                    
+                    Text("Loading...")
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.6))
+                }
+            }
+        }
     }
 }
 
@@ -122,9 +174,9 @@ struct NavigationFooterView: View {
                 .background(Color.white.opacity(0.1))
             
             HStack {
-                // Back button
+                // Back button (P0: debounced)
                 if viewModel.currentStep != .welcome && viewModel.currentStep != .complete {
-                    Button(action: viewModel.previousStep) {
+                    DebouncedButton(action: viewModel.previousStep) {
                         HStack(spacing: 6) {
                             Image(systemName: "chevron.left")
                             Text("Back")
@@ -144,9 +196,9 @@ struct NavigationFooterView: View {
                 
                 Spacer()
                 
-                // Next/Continue button
+                // Next/Continue button (P0: debounced)
                 if viewModel.currentStep != .complete {
-                    Button(action: viewModel.nextStep) {
+                    DebouncedButton(action: viewModel.nextStep) {
                         HStack(spacing: 6) {
                             Text(nextButtonTitle)
                             Image(systemName: "chevron.right")
@@ -272,15 +324,17 @@ struct LicenseStepView: View {
                             await viewModel.activateLicense()
                         }
                     }) {
-                        HStack {
+                        HStack(spacing: 8) {
                             if viewModel.isLoading {
                                 ProgressView()
                                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                    .scaleEffect(0.8)
+                                    .scaleEffect(0.7)
+                                    .frame(width: 16, height: 16)
                             }
                             Text(viewModel.isLoading ? "Activating..." : "Activate License")
                         }
                         .frame(maxWidth: .infinity)
+                        .frame(height: 20) // Fixed height prevents resizing
                     }
                     .buttonStyle(GlassButtonStyle(isProminent: true))
                     .disabled(viewModel.licenseKey.isEmpty || viewModel.isLoading)
@@ -294,16 +348,28 @@ struct LicenseStepView: View {
                     .foregroundColor(.white.opacity(0.6))
                 
                 Button(action: {
-                    if let url = URL(string: "https://openclawkit.lemonsqueezy.com/checkout/buy/7b279de2-56be-4f84-9049-e81c892b2bac") {
+                    if let url = URL(string: LicenseService.checkoutURL) {
                         NSWorkspace.shared.open(url)
                     }
                 }) {
                     HStack(spacing: 8) {
                         Image(systemName: "cart.fill")
-                        Text("Purchase OpenClawKit - $49.99")
+                        Text(LicenseService.isTestMode ? "Test Purchase - $49.99" : "Purchase OpenClawKit - $49.99")
                     }
                 }
                 .buttonStyle(GlassButtonStyle(isProminent: false))
+                
+                // Test mode indicator
+                if LicenseService.isTestMode {
+                    HStack(spacing: 6) {
+                        Image(systemName: "testtube.2")
+                            .foregroundColor(.orange)
+                        Text("TEST MODE - Use card 4242 4242 4242 4242")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                    }
+                    .padding(.top, 4)
+                }
             }
         }
         .onAppear {
@@ -629,7 +695,7 @@ struct InstallationStepView: View {
                         }
                         .frame(height: 120)
                         
-                        Button(action: {
+                        DebouncedButton(action: {
                             viewModel.startInstallation()
                         }) {
                             HStack(spacing: 8) {
@@ -943,7 +1009,15 @@ struct APISetupStepView: View {
                                             Text(provider.rawValue)
                                                 .font(.headline)
                                                 .foregroundColor(.white)
-                                            if provider.isFree {
+                                            if provider == .openRouter {
+                                                Text("Recommended")
+                                                    .font(.caption2.bold())
+                                                    .foregroundColor(Color(red: 0.4, green: 0.6, blue: 1.0))
+                                                    .padding(.horizontal, 6)
+                                                    .padding(.vertical, 2)
+                                                    .background(Color(red: 0.4, green: 0.6, blue: 1.0).opacity(0.2))
+                                                    .cornerRadius(4)
+                                            } else if provider.isFree {
                                                 Text("FREE")
                                                     .font(.caption2.bold())
                                                     .foregroundColor(.green)
@@ -978,87 +1052,24 @@ struct APISetupStepView: View {
                         }
                     }
                 }
-                .frame(maxWidth: 350)
+                .frame(maxWidth: 380)
                 
-                // Instructions and API Key (right side)
-                VStack(spacing: 16) {
-                    // Instructions card
-                    GlassCard(cornerRadius: 16, padding: 20) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Text("How to get your API key")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                Spacer()
-                                Text(viewModel.selectedProvider.pricingNote)
-                                    .font(.caption)
-                                    .foregroundColor(viewModel.selectedProvider.isFree ? .green : .orange)
-                            }
-                            
-                            Divider()
-                                .background(Color.white.opacity(0.1))
-                            
-                            Text(viewModel.selectedProvider.setupInstructions)
-                                .font(.subheadline)
-                                .foregroundColor(.white.opacity(0.8))
-                                .lineSpacing(4)
-                            
-                            Button(action: {
-                                if let url = URL(string: viewModel.selectedProvider.apiKeyURL) {
-                                    NSWorkspace.shared.open(url)
-                                }
-                            }) {
-                                HStack {
-                                    Image(systemName: "arrow.up.right.square")
-                                    Text("Open \(viewModel.selectedProvider.rawValue) to get API key")
-                                }
-                                .frame(maxWidth: .infinity)
-                            }
-                            .buttonStyle(GlassButtonStyle(isProminent: true))
+                // Provider-specific guide (right side)
+                ScrollView {
+                    VStack(spacing: 16) {
+                        switch viewModel.selectedProvider {
+                        case .openRouter:
+                            OpenRouterConnectionGuide(viewModel: viewModel)
+                        case .anthropic:
+                            AnthropicConnectionGuide(viewModel: viewModel)
+                        case .deepseek, .openAI:
+                            GenericProviderGuide(viewModel: viewModel)
                         }
                     }
-                    
-                    // API Key input
-                    GlassCard(cornerRadius: 16, padding: 20) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Paste your API Key")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                            
-                            SecureField("Enter your \(viewModel.selectedProvider.rawValue) API key", text: $viewModel.apiKey)
-                                .textFieldStyle(.plain)
-                                .font(.system(.body, design: .monospaced))
-                                .padding(12)
-                                .background(Color.white.opacity(0.05))
-                                .cornerRadius(8)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(viewModel.apiKey.isEmpty ? Color.white.opacity(0.1) : Color.green.opacity(0.5), lineWidth: 1)
-                                )
-                            
-                            HStack {
-                                Image(systemName: "lock.shield.fill")
-                                    .foregroundColor(.white.opacity(0.5))
-                                Text("Stored locally and never sent to our servers")
-                                    .font(.caption)
-                                    .foregroundColor(.white.opacity(0.5))
-                            }
-                            
-                            // Validation message
-                            if viewModel.apiKey.isEmpty {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "exclamationmark.triangle.fill")
-                                        .foregroundColor(.orange)
-                                    Text("An API key is required to continue")
-                                        .font(.caption)
-                                        .foregroundColor(.orange)
-                                }
-                                .padding(.top, 4)
-                            }
-                        }
-                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .frame(maxWidth: 400)
+                .frame(maxWidth: 450)
+                .scrollIndicators(.hidden)
             }
         }
     }

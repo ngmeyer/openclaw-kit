@@ -54,6 +54,18 @@ struct WebView: NSViewRepresentable {
         
         func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
             parent.isLoading = false
+            
+            let nsError = error as NSError
+            print("⚠️ [WebView] Provisional navigation failed: \(error)")
+            print("⚠️ [WebView] Error code: \(nsError.code), Domain: \(nsError.domain)")
+            
+            // -999 is NSURLErrorCancelled - often transient, don't treat as fatal
+            if nsError.code == -999 {
+                print("⚠️ [WebView] Got -999 (cancelled), will retry...")
+                // Don't report this error - let the caller retry
+                return
+            }
+            
             parent.onNavigationError?(error)
         }
     }
@@ -62,9 +74,9 @@ struct WebView: NSViewRepresentable {
 // MARK: - OpenClaw Browser View
 struct OpenClawBrowserView: View {
     @ObservedObject var viewModel: SetupWizardViewModel
-    @State private var isWebViewLoading = true
-    @State private var connectionError: String?
-    @State private var retryCount = 0
+    @State private var isStartingGateway = true
+    @State private var gatewayCheckAttempts = 0
+    @State private var hasOpenedBrowser = false
     
     var body: some View {
         ZStack {
@@ -72,105 +84,263 @@ struct OpenClawBrowserView: View {
             Color(red: 0.08, green: 0.08, blue: 0.12)
                 .ignoresSafeArea()
             
-            if let error = connectionError {
-                // Connection error state
-                VStack(spacing: 24) {
-                    Image(systemName: "wifi.exclamationmark")
-                        .font(.system(size: 64))
-                        .foregroundColor(.orange)
-                    
-                    Text("Connecting to OpenClaw...")
-                        .font(.title2)
-                        .foregroundColor(.white)
-                    
-                    Text(error)
-                        .font(.subheadline)
-                        .foregroundColor(.white.opacity(0.6))
-                        .multilineTextAlignment(.center)
-                    
-                    Button("Retry Connection") {
-                        connectionError = nil
-                        retryCount += 1
+            if isStartingGateway {
+                // Show starting gateway state while we verify it's running
+                StartingGatewayView()
+            } else {
+                // Show running state with browser button
+                RunningView(viewModel: viewModel, hasOpenedBrowser: $hasOpenedBrowser)
+            }
+        }
+        .onAppear {
+            Task {
+                await waitForGateway()
+            }
+        }
+    }
+    
+    private func waitForGateway() async {
+        let maxAttempts = 30 // 30 seconds max
+        
+        while gatewayCheckAttempts < maxAttempts {
+            gatewayCheckAttempts += 1
+            
+            if await checkGatewayStatus() {
+                isStartingGateway = false
+                // Auto-open browser once gateway is ready
+                if !hasOpenedBrowser {
+                    hasOpenedBrowser = true
+                    if let url = URL(string: viewModel.defaultGatewayURL) {
+                        NSWorkspace.shared.open(url)
                     }
-                    .buttonStyle(GlassButtonStyle(isProminent: true))
                 }
-                .padding(40)
-            } else if OpenClawKitApp.isDemoMode {
-                // Demo mode placeholder
-                VStack(spacing: 24) {
-                    Image(systemName: "play.display")
-                        .font(.system(size: 64))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.bluePrimary, .blueLight],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
+                return
+            }
+            
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+        }
+        
+        // Timeout
+        isStartingGateway = false
+    }
+    
+    private func checkGatewayStatus() async -> Bool {
+        guard let url = URL(string: "\(viewModel.defaultGatewayURL)/status") else {
+            return false
+        }
+        
+        do {
+            let (_, response) = try await URLSession.shared.data(from: url)
+            if let httpResponse = response as? HTTPURLResponse {
+                return httpResponse.statusCode == 200
+            }
+        } catch {
+            // Gateway not ready yet
+        }
+        return false
+    }
+}
+
+// MARK: - Running View (shows when gateway is active)
+struct RunningView: View {
+    @ObservedObject var viewModel: SetupWizardViewModel
+    @Binding var hasOpenedBrowser: Bool
+    
+    var body: some View {
+        VStack(spacing: 32) {
+            // Header
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color(red: 0.3, green: 0.8, blue: 0.5).opacity(0.3),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 80
                         )
-                    
-                    Text("OpenClaw Interface")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-                    
-                    Text("Demo Mode Active")
-                        .font(.title3)
-                        .foregroundColor(.white.opacity(0.7))
-                    
-                    Text("In production, this view displays the OpenClaw chat interface\nrunning at \(viewModel.defaultGatewayURL)")
-                        .font(.subheadline)
-                        .foregroundColor(.white.opacity(0.5))
-                        .multilineTextAlignment(.center)
+                    )
+                    .frame(width: 160, height: 160)
+                
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 72))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.3, green: 0.9, blue: 0.5),
+                                Color(red: 0.2, green: 0.7, blue: 0.4)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+            }
+            
+            VStack(spacing: 12) {
+                Text("OpenClaw is Running")
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                
+                Text("Your AI assistant is ready")
+                    .font(.title3)
+                    .foregroundColor(.white.opacity(0.7))
+            }
+            
+            // Status card
+            GlassCard(cornerRadius: 16, padding: 20) {
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack {
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 10, height: 10)
+                            .modifier(PulseAnimation())
+                        
+                        Text("Gateway active at \(viewModel.defaultGatewayURL)")
+                            .font(.subheadline)
+                            .foregroundColor(.white)
+                    }
                     
                     Divider()
                         .background(Color.white.opacity(0.1))
-                        .padding(.vertical)
                     
-                    // Demo chat mockup
-                    GlassCard(cornerRadius: 16, padding: 20) {
-                        VStack(alignment: .leading, spacing: 16) {
-                            HStack {
-                                Circle()
-                                    .fill(Color.green)
-                                    .frame(width: 8, height: 8)
-                                Text("OpenClaw is running")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                            }
-                            
-                            Text("You can now chat with your AI assistant through this interface, or connect messaging channels like Telegram, Discord, and more.")
-                                .font(.subheadline)
-                                .foregroundColor(.white.opacity(0.7))
-                        }
-                    }
-                    .frame(maxWidth: 500)
-                }
-                .padding(40)
-            } else {
-                // Actual WebView
-                WebView(
-                    url: URL(string: viewModel.defaultGatewayURL)!,
-                    isLoading: $isWebViewLoading,
-                    onNavigationError: { error in
-                        connectionError = "Could not connect to OpenClaw gateway.\n\(error.localizedDescription)"
-                    }
-                )
-                .id(retryCount) // Force reload on retry
-                
-                // Loading overlay
-                if isWebViewLoading {
-                    VStack(spacing: 16) {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .scaleEffect(1.5)
-                        
-                        Text("Loading OpenClaw...")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.black.opacity(0.7))
+                    Text("The chat interface has been opened in your default browser. You can also connect via Telegram, Discord, or other configured channels.")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.6))
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
+            .frame(maxWidth: 400)
+            
+            // Action buttons
+            VStack(spacing: 16) {
+                Button(action: {
+                    if let url = URL(string: viewModel.defaultGatewayURL) {
+                        NSWorkspace.shared.open(url)
+                    }
+                }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "play.fill")
+                        Text("Open Chat in Browser")
+                    }
+                    .frame(maxWidth: 280)
+                }
+                .buttonStyle(GlassButtonStyle(isProminent: true))
+                
+                HStack(spacing: 16) {
+                    Button(action: {
+                        Task {
+                            _ = await runShellCommand("openclaw gateway stop")
+                        }
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "stop.fill")
+                            Text("Stop Gateway")
+                        }
+                    }
+                    .buttonStyle(GlassButtonStyle())
+                    
+                    Button(action: {
+                        Task {
+                            _ = await runShellCommand("openclaw gateway restart")
+                        }
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "arrow.clockwise")
+                            Text("Restart")
+                        }
+                    }
+                    .buttonStyle(GlassButtonStyle())
+                }
+            }
+            
+            Spacer()
+            
+            // Tip
+            HStack(spacing: 8) {
+                Image(systemName: "lightbulb.fill")
+                    .foregroundColor(.yellow)
+                Text("Tip: Bookmark the chat URL for quick access")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.5))
+            }
         }
+        .padding(40)
+    }
+    
+    private func runShellCommand(_ command: String) async -> String? {
+        await withCheckedContinuation { continuation in
+            let task = Process()
+            let pipe = Pipe()
+            
+            task.standardOutput = pipe
+            task.standardError = pipe
+            task.arguments = ["-l", "-c", command]
+            task.launchPath = "/bin/zsh"
+            
+            var env = ProcessInfo.processInfo.environment
+            let homebrewPaths = "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin"
+            if let existingPath = env["PATH"] {
+                env["PATH"] = "\(homebrewPaths):\(existingPath)"
+            }
+            task.environment = env
+            
+            do {
+                try task.run()
+                task.waitUntilExit()
+                
+                let data = pipe.fileHandleForReading.readDataToEndOfFile()
+                let output = String(data: data, encoding: .utf8)?
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                
+                continuation.resume(returning: task.terminationStatus == 0 ? output : nil)
+            } catch {
+                continuation.resume(returning: nil)
+            }
+        }
+    }
+}
+
+// MARK: - Pulse Animation Modifier
+struct PulseAnimation: ViewModifier {
+    @State private var isPulsing = false
+    
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(isPulsing ? 1.2 : 1.0)
+            .opacity(isPulsing ? 0.5 : 1.0)
+            .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isPulsing)
+            .onAppear { isPulsing = true }
+    }
+}
+
+// MARK: - Starting Gateway View (P0: Shows while waiting for gateway)
+struct StartingGatewayView: View {
+    var body: some View {
+        VStack(spacing: 24) {
+            Image(systemName: "network")
+                .font(.system(size: 64))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [.bluePrimary, .blueLight],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+            
+            Text("Starting OpenClaw...")
+                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+            
+            Text("Waiting for gateway to be ready")
+                .font(.subheadline)
+                .foregroundColor(.white.opacity(0.6))
+            
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                .scaleEffect(1.2)
+        }
+        .padding(40)
     }
 }
