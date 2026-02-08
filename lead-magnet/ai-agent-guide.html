@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The AI Agent Revolution: A Beginner's Guide to OpenClaw, Claude, and OpenRouter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --deep-blue: #1E3A8A;
+            --coral: #FB7C4A;
+            --light-blue: #EFF6FF;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-900: #111827;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: var(--gray-900);
+            background: white;
+        }
+
+        .page {
+            width: 8.5in;
+            min-height: 11in;
+            padding: 0.75in;
+            margin: 0 auto;
+            background: white;
+            page-break-after: always;
+        }
+
+        .cover {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, var(--deep-blue) 0%, #1e40af 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cover::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(251, 124, 74, 0.1) 0%, transparent 70%);
+        }
+
+        .cover-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .logo-sub {
+            font-size: 1.1rem;
+            font-weight: 400;
+            color: var(--coral);
+            margin-bottom: 3rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .cover h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 2rem;
+            max-width: 90%;
+        }
+
+        .cover-subtitle {
+            font-size: 1.5rem;
+            font-weight: 300;
+            margin-bottom: 3rem;
+            opacity: 0.95;
+        }
+
+        .cover-badge {
+            display: inline-block;
+            background: var(--coral);
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-top: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--deep-blue);
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--deep-blue);
+            margin: 2rem 0 1rem 0;
+            line-height: 1.3;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--deep-blue);
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin: 1rem 0 0.5rem 0;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--gray-700);
+        }
+
+        .intro {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--gray-900);
+            margin-bottom: 2rem;
+            line-height: 1.8;
+        }
+
+        .card {
+            background: var(--gray-50);
+            border-left: 4px solid var(--coral);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 8px;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: var(--deep-blue);
+        }
+
+        .highlight-box {
+            background: var(--light-blue);
+            border: 2px solid var(--deep-blue);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 12px;
+        }
+
+        .icon-card {
+            display: flex;
+            gap: 1.5rem;
+            background: white;
+            border: 2px solid var(--gray-200);
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        .icon-card:hover {
+            border-color: var(--coral);
+            box-shadow: 0 4px 12px rgba(251, 124, 74, 0.15);
+        }
+
+        .icon {
+            font-size: 2.5rem;
+            flex-shrink: 0;
+        }
+
+        .icon-card h4 {
+            margin-top: 0;
+            color: var(--deep-blue);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.95rem;
+        }
+
+        thead {
+            background: var(--deep-blue);
+            color: white;
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        tbody tr:nth-child(even) {
+            background: var(--gray-50);
+        }
+
+        tbody tr:hover {
+            background: var(--light-blue);
+        }
+
+        .comparison-table td:first-child {
+            font-weight: 600;
+            color: var(--deep-blue);
+        }
+
+        .checklist {
+            list-style: none;
+            margin: 1.5rem 0;
+        }
+
+        .checklist li {
+            padding: 1rem;
+            margin: 0.5rem 0;
+            background: white;
+            border: 2px solid var(--gray-200);
+            border-radius: 8px;
+            position: relative;
+            padding-left: 3rem;
+        }
+
+        .checklist li::before {
+            content: '✓';
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1.5rem;
+            height: 1.5rem;
+            background: var(--coral);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .feature {
+            background: white;
+            border: 2px solid var(--gray-200);
+            padding: 1.5rem;
+            border-radius: 12px;
+        }
+
+        .feature h4 {
+            color: var(--deep-blue);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-icon {
+            font-size: 1.5rem;
+        }
+
+        .pill {
+            display: inline-block;
+            background: var(--coral);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .pill.blue {
+            background: var(--deep-blue);
+        }
+
+        .pill.green {
+            background: #10B981;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, var(--deep-blue) 0%, #1e40af 100%);
+            color: white;
+            padding: 3rem;
+            border-radius: 16px;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .cta-section h2 {
+            color: white;
+            margin-top: 0;
+        }
+
+        .cta-section p {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: var(--coral);
+            color: white;
+            padding: 1rem 3rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .resource-link {
+            background: var(--gray-50);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--coral);
+            font-weight: 500;
+            color: var(--deep-blue);
+        }
+
+        .footer {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 2px solid var(--gray-200);
+            color: var(--gray-600);
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            background: var(--light-blue);
+            color: var(--deep-blue);
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin: 0.25rem;
+        }
+
+        .stat {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--gray-50);
+            border-radius: 12px;
+            margin: 1rem 0;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--coral);
+            display: block;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+
+        ul {
+            margin: 1rem 0 1rem 2rem;
+            line-height: 1.8;
+        }
+
+        ul li {
+            margin: 0.5rem 0;
+            color: var(--gray-700);
+        }
+
+        strong {
+            color: var(--deep-blue);
+            font-weight: 600;
+        }
+
+        @media print {
+            .page {
+                margin: 0;
+                page-break-after: always;
+            }
+            
+            body {
+                background: white;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- COVER PAGE -->
+    <div class="page cover">
+        <div class="cover-content">
+            <div class="logo">OpenClawKit</div>
+            <div class="logo-sub">AI Agent Platform</div>
+            
+            <h1>The AI Agent Revolution</h1>
+            <p class="cover-subtitle">A Beginner's Guide to OpenClaw, Claude, and OpenRouter</p>
+            
+            <div class="cover-badge">Free Guide • 2026 Edition</div>
+        </div>
+    </div>
+
+    <!-- PAGE 2: INTRODUCTION -->
+    <div class="page">
+        <h1>What Are AI Agents and Why They Matter</h1>
+        
+        <p class="intro">
+            We're witnessing a fundamental shift in how humans interact with technology. AI agents are not just chatbots—they're autonomous digital assistants that can think, plan, and act on your behalf.
+        </p>
+
+        <div class="highlight-box">
+            <h3>🤖 What is an AI Agent?</h3>
+            <p>An <strong>AI agent</strong> is an autonomous software system powered by large language models (LLMs) that can:</p>
+            <ul>
+                <li>Understand natural language instructions</li>
+                <li>Break down complex tasks into steps</li>
+                <li>Use tools (browse the web, write code, send messages)</li>
+                <li>Learn from context and adapt to your preferences</li>
+                <li>Work independently while keeping you in control</li>
+            </ul>
+        </div>
+
+        <h2>The AI Agent Stack</h2>
+        
+        <div class="icon-card">
+            <div class="icon">🧠</div>
+            <div>
+                <h4>Layer 1: The Brain (LLM)</h4>
+                <p>Claude, GPT-4, Gemini—the large language models that provide reasoning and language understanding.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">🔌</div>
+            <div>
+                <h4>Layer 2: The Gateway (OpenRouter)</h4>
+                <p>A unified API that connects you to 200+ AI models without vendor lock-in.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">🦾</div>
+            <div>
+                <h4>Layer 3: The Agent (OpenClaw)</h4>
+                <p>The orchestration layer that gives the AI hands—tools to browse, code, message, and automate.</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Why Now?</h3>
+            <p>Three factors have converged to make AI agents practical:</p>
+            <ul>
+                <li><strong>Smarter models:</strong> Claude 3.5 Sonnet, GPT-4, and others can now reason reliably</li>
+                <li><strong>Tool use:</strong> LLMs can now call functions and APIs, making them actionable</li>
+                <li><strong>Cost reduction:</strong> Inference costs have dropped 10x in the past year</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- PAGE 3: OPENCLAW OVERVIEW -->
+    <div class="page">
+        <h1>OpenClaw: Your Personal AI Agent</h1>
+        
+        <p class="intro">
+            OpenClaw is a personal AI agent you run <strong>locally on your own machine</strong>. It gives you all the power of Claude, GPT-4, and other frontier models—without sacrificing privacy or control.
+        </p>
+
+        <div class="feature-grid">
+            <div class="feature">
+                <h4><span class="feature-icon">🔒</span> Privacy First</h4>
+                <p>Your data stays on your machine. No cloud storage of conversations or personal info.</p>
+            </div>
+            
+            <div class="feature">
+                <h4><span class="feature-icon">💰</span> Cost Control</h4>
+                <p>Pay only for API calls you make. No subscriptions, no markup.</p>
+            </div>
+            
+            <div class="feature">
+                <h4><span class="feature-icon">🔓</span> No Lock-In</h4>
+                <p>Switch between 200+ models instantly. Try GPT-4, Claude, Gemini—your choice.</p>
+            </div>
+            
+            <div class="feature">
+                <h4><span class="feature-icon">📱</span> Multi-Channel</h4>
+                <p>Talk via CLI, Telegram, Discord, WhatsApp—all from one agent.</p>
+            </div>
+
+            <div class="feature">
+                <h4><span class="feature-icon">🛠️</span> Built-in Tools</h4>
+                <p>Browse the web, write code, manage files, control your phone—all native.</p>
+            </div>
+            
+            <div class="feature">
+                <h4><span class="feature-icon">🧠</span> Long-Term Memory</h4>
+                <p>Your agent remembers context across sessions, learning your preferences.</p>
+            </div>
+        </div>
+
+        <h2>What Can OpenClaw Do?</h2>
+
+        <div class="card">
+            <h4>📊 Research & Analysis</h4>
+            <p>Search the web, extract data, summarize documents, compare options</p>
+        </div>
+
+        <div class="card">
+            <h4>💻 Coding Assistant</h4>
+            <p>Write code, debug, review PRs, deploy apps, manage git repos</p>
+        </div>
+
+        <div class="card">
+            <h4>📧 Communication</h4>
+            <p>Send emails, tweets, Telegram messages; draft content; schedule posts</p>
+        </div>
+
+        <div class="card">
+            <h4>🤖 Automation</h4>
+            <p>Schedule tasks, monitor feeds, scrape data, trigger workflows</p>
+        </div>
+
+        <div class="highlight-box">
+            <h3>Real Example</h3>
+            <p><em>"Check my unread emails, summarize anything urgent, draft a response to the investor inquiry, and add the meeting to my calendar."</em></p>
+            <p style="margin-top: 1rem;">OpenClaw handles all of this in one turn—no switching between apps.</p>
+        </div>
+    </div>
+
+    <!-- PAGE 4-5: CLAUDE DEEP DIVE -->
+    <div class="page">
+        <h1>Claude by Anthropic: The AI Brain</h1>
+        
+        <p class="intro">
+            Claude is Anthropic's family of AI models, designed to be helpful, harmless, and honest. It powers OpenClaw's default reasoning engine.
+        </p>
+
+        <h2>The Claude Model Family</h2>
+
+        <div class="icon-card">
+            <div class="icon">⚡</div>
+            <div>
+                <h4>Claude 3.5 Haiku <span class="pill green">Fastest</span></h4>
+                <p><strong>Best for:</strong> Quick tasks, API calls, real-time chat</p>
+                <p><strong>Speed:</strong> ~0.5s response time</p>
+                <p><strong>Cost:</strong> $0.80/M input tokens, $4/M output tokens</p>
+                <p><strong>Use case:</strong> Heartbeats, quick lookups, summarization</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">⚖️</div>
+            <div>
+                <h4>Claude 3.5 Sonnet <span class="pill blue">Balanced</span></h4>
+                <p><strong>Best for:</strong> Coding, writing, complex reasoning</p>
+                <p><strong>Speed:</strong> ~2s response time</p>
+                <p><strong>Cost:</strong> $3/M input tokens, $15/M output tokens</p>
+                <p><strong>Use case:</strong> Default for most tasks—smart and affordable</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">🧠</div>
+            <div>
+                <h4>Claude 3 Opus <span class="pill">Premium</span></h4>
+                <p><strong>Best for:</strong> Hardest problems, research, creative work</p>
+                <p><strong>Speed:</strong> ~4s response time</p>
+                <p><strong>Cost:</strong> $15/M input tokens, $75/M output tokens</p>
+                <p><strong>Use case:</strong> When you need the absolute best reasoning</p>
+            </div>
+        </div>
+
+        <h2>Claude's Superpowers</h2>
+
+        <div class="feature-grid">
+            <div class="feature">
+                <h4>📝 Long Context</h4>
+                <p>200,000 token window—handle entire codebases or long documents in one go.</p>
+            </div>
+            
+            <div class="feature">
+                <h4>🎯 Tool Use</h4>
+                <p>Industry-leading function calling accuracy. Reliable for agent workflows.</p>
+            </div>
+            
+            <div class="feature">
+                <h4>💻 Coding Excellence</h4>
+                <p>Consistently ranks #1 on SWE-bench and HumanEval coding benchmarks.</p>
+            </div>
+            
+            <div class="feature">
+                <h4>🛡️ Safety</h4>
+                <p>Built with Constitutional AI—refuses harmful requests, respects privacy.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="page">
+        <h2>When to Use Each Claude Model</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Task Type</th>
+                    <th>Recommended Model</th>
+                    <th>Why</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Background checks (email, calendar)</td>
+                    <td>Haiku</td>
+                    <td>Fast, cheap, good enough for simple tasks</td>
+                </tr>
+                <tr>
+                    <td>Writing code or articles</td>
+                    <td>Sonnet</td>
+                    <td>Best balance of quality and cost</td>
+                </tr>
+                <tr>
+                    <td>Complex research or analysis</td>
+                    <td>Opus</td>
+                    <td>Maximum reasoning ability</td>
+                </tr>
+                <tr>
+                    <td>Web search summarization</td>
+                    <td>Haiku or Sonnet</td>
+                    <td>Sonnet for nuance, Haiku for speed</td>
+                </tr>
+                <tr>
+                    <td>Creative writing</td>
+                    <td>Opus or Sonnet</td>
+                    <td>Opus for literary quality, Sonnet for speed</td>
+                </tr>
+                <tr>
+                    <td>Debugging complex systems</td>
+                    <td>Sonnet or Opus</td>
+                    <td>Sonnet usually sufficient, Opus for edge cases</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="highlight-box">
+            <h3>💡 Pro Tip: Mix and Match</h3>
+            <p>OpenClaw lets you use different models for different tasks in the same session. Use Haiku for heartbeats, Sonnet for daily work, and Opus when you hit a hard problem.</p>
+        </div>
+
+        <h2>Claude Pricing in Practice</h2>
+
+        <div class="card">
+            <h4>Example: A typical work session</h4>
+            <ul>
+                <li><strong>10 heartbeat checks (Haiku):</strong> ~5K tokens = $0.004</li>
+                <li><strong>5 coding tasks (Sonnet):</strong> ~50K tokens = $0.15</li>
+                <li><strong>1 complex research (Opus):</strong> ~20K tokens = $0.30</li>
+            </ul>
+            <p style="margin-top: 1rem;"><strong>Total daily cost: ~$0.45</strong></p>
+            <p>Compare that to ChatGPT Plus at $20/month ($0.67/day) with rate limits and no API access.</p>
+        </div>
+    </div>
+
+    <!-- PAGE 6: OPENROUTER -->
+    <div class="page">
+        <h1>OpenRouter: The Model Gateway</h1>
+        
+        <p class="intro">
+            OpenRouter is a unified API that gives you access to <strong>200+ AI models</strong> from every major provider—through a single interface.
+        </p>
+
+        <h2>Why OpenRouter Matters</h2>
+
+        <div class="icon-card">
+            <div class="icon">🔓</div>
+            <div>
+                <h4>No Vendor Lock-In</h4>
+                <p>Try GPT-4, Claude, Gemini, Llama, Mistral, and hundreds more—all with the same API. Switch models in seconds.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">💸</div>
+            <div>
+                <h4>Transparent Pricing</h4>
+                <p>See exact per-token costs. OpenRouter adds a small markup (~10%) for convenience and routing.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">🚀</div>
+            <div>
+                <h4>Free Models Available</h4>
+                <p>Many models (Gemini Flash, Kimi K2.5, Llama) are completely free—perfect for experimentation.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">⚡</div>
+            <div>
+                <h4>Smart Routing</h4>
+                <p>OpenRouter automatically routes to the fastest available provider. No downtime.</p>
+            </div>
+        </div>
+
+        <h2>Popular Models on OpenRouter</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Provider</th>
+                    <th>Best For</th>
+                    <th>Cost/M tokens</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Claude 3.5 Sonnet</td>
+                    <td>Anthropic</td>
+                    <td>Coding, reasoning</td>
+                    <td>$3 / $15</td>
+                </tr>
+                <tr>
+                    <td>GPT-4 Turbo</td>
+                    <td>OpenAI</td>
+                    <td>General tasks</td>
+                    <td>$10 / $30</td>
+                </tr>
+                <tr>
+                    <td>Kimi K2.5</td>
+                    <td>Moonshot</td>
+                    <td>Long context (free!)</td>
+                    <td>Free</td>
+                </tr>
+                <tr>
+                    <td>Gemini 2.0 Flash</td>
+                    <td>Google</td>
+                    <td>Multimodal (free!)</td>
+                    <td>Free</td>
+                </tr>
+                <tr>
+                    <td>DeepSeek v2</td>
+                    <td>DeepSeek</td>
+                    <td>Cheap, fast reasoning</td>
+                    <td>$0.14 / $0.28</td>
+                </tr>
+                <tr>
+                    <td>Llama 3.3 70B</td>
+                    <td>Meta</td>
+                    <td>Open source power</td>
+                    <td>$0.59 / $0.79</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="highlight-box">
+            <h3>🎯 OpenClaw + OpenRouter = Freedom</h3>
+            <p>With OpenClaw, you configure OpenRouter once and can switch models anytime. No need to manage separate API keys for Anthropic, OpenAI, Google, etc.</p>
+        </div>
+    </div>
+
+    <!-- PAGE 7: MODEL COMPARISON -->
+    <div class="page">
+        <h1>The Big Model Comparison</h1>
+        
+        <p class="intro">
+            Here's how the top models stack up across the metrics that matter most for agent work.
+        </p>
+
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Claude 3.5 Sonnet</th>
+                    <th>GPT-4 Turbo</th>
+                    <th>Kimi K2.5</th>
+                    <th>Gemini 2.0 Pro</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Speed (avg response)</td>
+                    <td>~2s ⚡⚡⚡</td>
+                    <td>~3s ⚡⚡</td>
+                    <td>~2.5s ⚡⚡⚡</td>
+                    <td>~1.5s ⚡⚡⚡⚡</td>
+                </tr>
+                <tr>
+                    <td>Coding Quality</td>
+                    <td>Excellent ⭐⭐⭐⭐⭐</td>
+                    <td>Very Good ⭐⭐⭐⭐</td>
+                    <td>Good ⭐⭐⭐</td>
+                    <td>Good ⭐⭐⭐</td>
+                </tr>
+                <tr>
+                    <td>Reasoning</td>
+                    <td>Excellent ⭐⭐⭐⭐⭐</td>
+                    <td>Excellent ⭐⭐⭐⭐⭐</td>
+                    <td>Very Good ⭐⭐⭐⭐</td>
+                    <td>Very Good ⭐⭐⭐⭐</td>
+                </tr>
+                <tr>
+                    <td>Tool Use Accuracy</td>
+                    <td>Best-in-class 98%</td>
+                    <td>Excellent 95%</td>
+                    <td>Good 85%</td>
+                    <td>Very Good 90%</td>
+                </tr>
+                <tr>
+                    <td>Context Window</td>
+                    <td>200K tokens</td>
+                    <td>128K tokens</td>
+                    <td>1M tokens 🏆</td>
+                    <td>1M tokens 🏆</td>
+                </tr>
+                <tr>
+                    <td>Cost (input/output)</td>
+                    <td>$3/$15 💰💰</td>
+                    <td>$10/$30 💰💰💰</td>
+                    <td>FREE 🎉</td>
+                    <td>FREE 🎉</td>
+                </tr>
+                <tr>
+                    <td>Multimodal (vision)</td>
+                    <td>✅ Yes</td>
+                    <td>✅ Yes</td>
+                    <td>❌ No</td>
+                    <td>✅ Yes</td>
+                </tr>
+                <tr>
+                    <td>Best Use Case</td>
+                    <td>Coding, agents</td>
+                    <td>General tasks</td>
+                    <td>Long docs (free)</td>
+                    <td>Vision, speed (free)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>The Verdict</h2>
+
+        <div class="card">
+            <h4>🏆 Best Overall: Claude 3.5 Sonnet</h4>
+            <p>For agent workflows, Claude wins on tool use accuracy, coding quality, and reliability. Worth the cost.</p>
+        </div>
+
+        <div class="card">
+            <h4>💰 Best Value: Kimi K2.5</h4>
+            <p>Free, huge context window, great for research and long documents. Use for non-critical tasks.</p>
+        </div>
+
+        <div class="card">
+            <h4>🎨 Best Multimodal: Gemini 2.0 Pro</h4>
+            <p>Free tier, excellent vision capabilities, fastest inference. Great for image analysis.</p>
+        </div>
+
+        <div class="card">
+            <h4>🔧 Best for Enterprises: GPT-4 Turbo</h4>
+            <p>Most widely adopted, great documentation, strong all-around. Higher cost justified for mission-critical apps.</p>
+        </div>
+    </div>
+
+    <!-- PAGE 8: WHY OPENCLAW -->
+    <div class="page">
+        <h1>Why OpenClaw is Better</h1>
+        
+        <p class="intro">
+            You could use ChatGPT, Claude.ai, or other hosted services. Here's why running your own agent locally gives you superpowers.
+        </p>
+
+        <div class="icon-card">
+            <div class="icon">🔒</div>
+            <div>
+                <h4>1. Privacy & Data Sovereignty</h4>
+                <p><strong>Problem:</strong> When you use ChatGPT or Claude.ai, your conversations are stored on their servers. They can be used for training, subpoenaed, or leaked.</p>
+                <p style="margin-top: 0.5rem;"><strong>OpenClaw solution:</strong> Everything stays on your machine. Your memory files, conversation history, and personal data never leave your control.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">💰</div>
+            <div>
+                <h4>2. Cost Control</h4>
+                <p><strong>Problem:</strong> ChatGPT Plus is $20/month with rate limits. Claude Pro is $20/month. Gemini Advanced is $20/month. Want all three? $60/month.</p>
+                <p style="margin-top: 0.5rem;"><strong>OpenClaw solution:</strong> Pay only for tokens you use. Most users spend $5-15/month and get access to ALL models. No rate limits, no subscriptions.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">🔓</div>
+            <div>
+                <h4>3. No Vendor Lock-In</h4>
+                <p><strong>Problem:</strong> If you build workflows around ChatGPT and OpenAI raises prices or shuts down your account, you're stuck.</p>
+                <p style="margin-top: 0.5rem;"><strong>OpenClaw solution:</strong> Switch models anytime. GPT-4 too expensive? Try Claude. Claude overloaded? Try Gemini. All from one interface.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">📱</div>
+            <div>
+                <h4>4. Multi-Channel</h4>
+                <p><strong>Problem:</strong> You have to use separate apps for ChatGPT web, ChatGPT mobile, Claude, etc. No unified memory.</p>
+                <p style="margin-top: 0.5rem;"><strong>OpenClaw solution:</strong> Talk to your agent via CLI, Telegram, Discord, WhatsApp, or SMS—same agent, same memory, same context.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">🛠️</div>
+            <div>
+                <h4>5. Real Tools</h4>
+                <p><strong>Problem:</strong> ChatGPT can browse the web (sometimes). That's it. No file access, no code execution, no automation.</p>
+                <p style="margin-top: 0.5rem;"><strong>OpenClaw solution:</strong> Full access to your filesystem, git repos, shell, browser, camera, notifications, cron jobs, and more. It's a real assistant.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">🧠</div>
+            <div>
+                <h4>6. Long-Term Memory</h4>
+                <p><strong>Problem:</strong> Hosted services have limited context. They forget between sessions unless you manually paste old conversations.</p>
+                <p style="margin-top: 0.5rem;"><strong>OpenClaw solution:</strong> Your agent maintains MEMORY.md and daily logs. It remembers what you've worked on, your preferences, and lessons learned.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 9: GETTING STARTED -->
+    <div class="page">
+        <h1>Getting Started with OpenClaw</h1>
+        
+        <p class="intro">
+            Ready to run your own AI agent? Here's your step-by-step checklist.
+        </p>
+
+        <h2>📋 Setup Checklist</h2>
+
+        <ul class="checklist">
+            <li><strong>Create an OpenRouter account</strong><br>Visit openrouter.ai and sign up. Free tier available.</li>
+            
+            <li><strong>Get API credits</strong><br>Add $5-10 to start. Free models (Kimi, Gemini) require no credits.</li>
+            
+            <li><strong>Download OpenClaw</strong><br>Visit openclawkit.ai and download for macOS, Windows, or Linux.</li>
+            
+            <li><strong>Install and configure</strong><br>Run the installer, paste your OpenRouter API key when prompted.</li>
+            
+            <li><strong>Choose your default model</strong><br>We recommend Claude 3.5 Sonnet for balanced performance.</li>
+            
+            <li><strong>Test the CLI</strong><br>Open terminal and type: <code>openclaw chat "Hello! Tell me about yourself."</code></li>
+            
+            <li><strong>Set up Telegram (optional)</strong><br>Connect your Telegram bot for mobile access.</li>
+            
+            <li><strong>Customize your workspace</strong><br>Edit SOUL.md and USER.md to teach your agent about you.</li>
+            
+            <li><strong>Enable heartbeats</strong><br>Let your agent proactively check email, calendar, and notifications.</li>
+            
+            <li><strong>Explore skills</strong><br>Install skills for email, GitHub, Twitter, calendar, and more.</li>
+        </ul>
+
+        <div class="highlight-box">
+            <h3>🎓 New User Path</h3>
+            <p><strong>Day 1:</strong> Get basic chat working. Ask it questions, test web search.</p>
+            <p><strong>Day 2:</strong> Connect Telegram or Discord. Chat from your phone.</p>
+            <p><strong>Day 3:</strong> Set up heartbeats. Let it monitor your inbox.</p>
+            <p><strong>Week 2:</strong> Teach it about your projects. Use it for coding help.</p>
+            <p><strong>Month 1:</strong> Build custom workflows. Automate repetitive tasks.</p>
+        </div>
+    </div>
+
+    <!-- PAGE 10: RESOURCES -->
+    <div class="page">
+        <h1>Resources & Next Steps</h1>
+
+        <h2>📚 Official Resources</h2>
+
+        <div class="resources-grid">
+            <div class="resource-link">
+                <strong>OpenClawKit Website</strong><br>
+                openclawkit.ai
+            </div>
+            
+            <div class="resource-link">
+                <strong>Documentation</strong><br>
+                docs.openclawkit.ai
+            </div>
+            
+            <div class="resource-link">
+                <strong>GitHub Repository</strong><br>
+                github.com/openclaw/openclaw
+            </div>
+            
+            <div class="resource-link">
+                <strong>Community Discord</strong><br>
+                discord.gg/openclaw
+            </div>
+            
+            <div class="resource-link">
+                <strong>OpenRouter Dashboard</strong><br>
+                openrouter.ai/dashboard
+            </div>
+            
+            <div class="resource-link">
+                <strong>Claude Documentation</strong><br>
+                docs.anthropic.com/claude
+            </div>
+        </div>
+
+        <h2>🎓 Learning Resources</h2>
+
+        <div class="card">
+            <h4>Video Tutorials</h4>
+            <ul>
+                <li>OpenClaw Quick Start (10 min)</li>
+                <li>Building Your First Agent Workflow (25 min)</li>
+                <li>Advanced Memory Management (15 min)</li>
+                <li>Multi-Channel Setup Guide (12 min)</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h4>Written Guides</h4>
+            <ul>
+                <li>The Complete OpenClaw Handbook</li>
+                <li>Model Selection Best Practices</li>
+                <li>Privacy & Security Guide</li>
+                <li>Cost Optimization Strategies</li>
+            </ul>
+        </div>
+
+        <h2>🤝 Community & Support</h2>
+
+        <div class="icon-card">
+            <div class="icon">💬</div>
+            <div>
+                <h4>Join the Community</h4>
+                <p>Discord server with 5,000+ members. Get help, share workflows, and discover new use cases.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">📧</div>
+            <div>
+                <h4>Email Support</h4>
+                <p>support@openclawkit.ai — We respond within 24 hours.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">🐛</div>
+            <div>
+                <h4>Report Issues</h4>
+                <p>GitHub Issues for bug reports and feature requests.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 11: CALL TO ACTION -->
+    <div class="page">
+        <div style="padding-top: 2rem;">
+            <h1 style="text-align: center; margin-bottom: 3rem;">Ready to Take Control?</h1>
+            
+            <div class="stat" style="max-width: 600px; margin: 2rem auto;">
+                <span class="stat-number">10,000+</span>
+                <span class="stat-label">Users running their own AI agents</span>
+            </div>
+
+            <div class="cta-section">
+                <h2>Start Your AI Agent Journey Today</h2>
+                <p>Download OpenClaw and get access to 200+ AI models—on your terms.</p>
+                <div style="margin: 2rem 0;">
+                    <div class="cta-button">Download OpenClaw Free</div>
+                </div>
+                <p style="font-size: 0.95rem; opacity: 0.9;">Works on macOS, Windows, and Linux • No subscription required</p>
+            </div>
+
+            <h2 style="margin-top: 3rem;">What You Get</h2>
+            
+            <div class="feature-grid">
+                <div class="feature">
+                    <h4>✅ Complete Privacy</h4>
+                    <p>All data stays on your machine</p>
+                </div>
+                
+                <div class="feature">
+                    <h4>✅ Model Freedom</h4>
+                    <p>Access to Claude, GPT-4, Gemini, and 200+ more</p>
+                </div>
+                
+                <div class="feature">
+                    <h4>✅ Pay Per Use</h4>
+                    <p>No subscriptions, no markups</p>
+                </div>
+                
+                <div class="feature">
+                    <h4>✅ Multi-Channel</h4>
+                    <p>CLI, Telegram, Discord, WhatsApp</p>
+                </div>
+
+                <div class="feature">
+                    <h4>✅ Built-in Tools</h4>
+                    <p>Web, code, files, automation</p>
+                </div>
+                
+                <div class="feature">
+                    <h4>✅ Active Community</h4>
+                    <p>Discord, docs, video tutorials</p>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 3rem;">
+                <h3>🎁 Limited Time Bonus</h3>
+                <p>Download this week and get:</p>
+                <ul>
+                    <li><strong>$10 OpenRouter credits</strong> (promo code: OPENCLAW2026)</li>
+                    <li><strong>Premium skills pack</strong> (GitHub, email, calendar integration)</li>
+                    <li><strong>1-on-1 onboarding session</strong> (first 100 users)</li>
+                </ul>
+            </div>
+
+            <div class="footer">
+                <p><strong>OpenClawKit</strong> • openclawkit.ai • support@openclawkit.ai</p>
+                <p style="margin-top: 0.5rem;">© 2026 OpenClawKit. Built for people who value privacy and control.</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

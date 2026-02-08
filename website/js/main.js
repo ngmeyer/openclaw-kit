@@ -103,12 +103,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Simulated Stripe integration (in a real app, this would use the Stripe JS SDK)
-// This is just for demonstration purposes
-function initStripe() {
-    // This would normally initialize Stripe elements
-    console.log('Stripe initialized');
-}
-
-// Call simulated init
-initStripe();
+// Newsletter form handling (footer)
+document.addEventListener('DOMContentLoaded', function() {
+    const footerForm = document.querySelector('.footer form');
+    if (footerForm) {
+        footerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const emailInput = this.querySelector('input[type="email"]');
+            if (emailInput && emailInput.value) {
+                // Redirect to main newsletter section for LemonSqueezy handling
+                const mainForm = document.getElementById('newsletter-form');
+                if (mainForm) {
+                    const mainEmail = mainForm.querySelector('input[type="email"]');
+                    if (mainEmail) mainEmail.value = emailInput.value;
+                    mainForm.submit();
+                }
+            }
+        });
+    }
+});

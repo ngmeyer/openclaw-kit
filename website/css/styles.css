@@ -16,11 +16,16 @@
     --dark-gray: #4A4A4A;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: 'Inter', sans-serif;
     color: var(--dark-gray);
     background-color: var(--white);
     line-height: 1.6;
+    padding-top: 76px;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -87,6 +92,13 @@ section {
 .navbar {
     background-color: var(--blue-primary);
     padding: 1rem 0;
+    transition: background-color 0.3s, box-shadow 0.3s, padding 0.3s;
+}
+
+.navbar-scrolled {
+    background-color: var(--blue-dark) !important;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
+    padding: 0.5rem 0;
 }
 
 .navbar-brand img {
@@ -112,20 +124,41 @@ section {
     position: relative;
 }
 
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .hero h1 {
     font-size: 3rem;
     font-weight: 700;
     margin-bottom: 1.5rem;
     color: var(--white);
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.hero .lead {
+    animation: fadeInUp 0.6s ease-out 0.15s both;
+}
+
+.hero-cta {
+    margin-top: 2.5rem;
+    animation: fadeInUp 0.6s ease-out 0.3s both;
+}
+
+.hero-image img {
+    animation: fadeInUp 0.6s ease-out 0.4s both;
 }
 
 .hero .lead {
     font-size: 1.25rem;
     margin-bottom: 2rem;
-}
-
-.hero-cta {
-    margin-top: 2.5rem;
 }
 
 .text-light-accent {
@@ -141,6 +174,11 @@ section {
     max-width: 90%;
     border-radius: 12px;
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s;
+}
+
+.hero-image img:hover {
+    transform: scale(1.02);
 }
 
 /* Features Section */
@@ -367,12 +405,12 @@ section {
     background-color: var(--white);
     font-weight: 600;
     padding: 1.25rem;
-    color: var(--teal-primary);
+    color: var(--blue-primary);
 }
 
 .accordion-button:not(.collapsed) {
-    background-color: var(--seafoam-light);
-    color: var(--teal-dark);
+    background-color: var(--blue-light-bg);
+    color: var(--blue-dark);
 }
 
 .accordion-button:focus {
@@ -399,7 +437,7 @@ section {
 
 .get-started-card h2 {
     margin-bottom: 1rem;
-    color: var(--teal-primary);
+    color: var(--blue-primary);
 }
 
 .get-started-card .lead {
