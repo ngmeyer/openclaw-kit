@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Personal AI Agent: The OpenClaw Revolution</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* iOS App Theme - Dark Mode */
+            --dark-bg-1: rgb(13, 20, 46);
+            --dark-bg-2: rgb(20, 31, 64);
+            --dark-bg-3: rgb(13, 20, 46);
+            
+            /* Brand Colors from AppTheme.swift */
+            --blue-primary: #1E3A8A;
+            --blue-light: #3B5CC9;
+            --blue-dark: #172554;
+            --blue-light-bg: #BFD1FF;
+            
+            --coral-accent: #FB7C4A;
+            --coral-light: #FFA183;
+            --coral-dark: #E85E2D;
+            
+            --navy-dark: #172554;
+            --light-gray: #F2F2F2;
+            --medium-gray: #CCCCCC;
+            --dark-gray: #4A4A4A;
+            
+            /* Glass morphism */
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(59, 92, 201, 0.3);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: var(--light-gray);
+            background: linear-gradient(135deg, var(--dark-bg-1) 0%, var(--dark-bg-2) 50%, var(--dark-bg-3) 100%);
+        }
+
+        .page {
+            width: 8.5in;
+            min-height: 11in;
+            padding: 0.75in;
+            margin: 0 auto;
+            background: transparent;
+            page-break-after: always;
+        }
+
+        /* COVER PAGE - Dark with Glass Morphism */
+        .cover {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, var(--dark-bg-1) 0%, var(--dark-bg-2) 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cover::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(59, 92, 201, 0.15) 0%, transparent 70%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        .cover-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--blue-light) 0%, var(--coral-accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-sub {
+            font-size: 1.1rem;
+            font-weight: 400;
+            color: var(--coral-accent);
+            margin-bottom: 3rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .cover h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 2rem;
+            max-width: 90%;
+            color: white;
+        }
+
+        .cover-subtitle {
+            font-size: 1.5rem;
+            font-weight: 300;
+            margin-bottom: 3rem;
+            opacity: 0.95;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .cover-badge {
+            display: inline-block;
+            background: var(--coral-accent);
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-top: 2rem;
+            color: white;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--blue-light);
+            margin: 2rem 0 1rem 0;
+            line-height: 1.3;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--coral-light);
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: white;
+            margin: 1rem 0 0.5rem 0;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .intro {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 2rem;
+            line-height: 1.8;
+            font-style: italic;
+        }
+
+        /* Glass Morphism Cards */
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-left: 4px solid var(--coral-accent);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: var(--coral-light);
+        }
+
+        .card h4 {
+            color: white;
+        }
+
+        .highlight-box {
+            background: rgba(59, 92, 201, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 2px solid var(--blue-light);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(59, 92, 201, 0.2);
+        }
+
+        .icon-card {
+            display: flex;
+            gap: 1.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 2px solid var(--glass-border);
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 12px;
+            transition: all 0.3s;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .icon-card:hover {
+            border-color: var(--coral-accent);
+            box-shadow: 0 8px 32px rgba(251, 124, 74, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .icon {
+            font-size: 2.5rem;
+            flex-shrink: 0;
+        }
+
+        .icon-card h4 {
+            margin-top: 0;
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.95rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        thead {
+            background: var(--blue-primary);
+            color: white;
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        tbody tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        tbody tr:hover {
+            background: rgba(59, 92, 201, 0.1);
+        }
+
+        .comparison-table td:first-child {
+            font-weight: 600;
+            color: var(--coral-light);
+        }
+
+        .checklist {
+            list-style: none;
+            margin: 1.5rem 0;
+        }
+
+        .checklist li {
+            padding: 1rem;
+            margin: 0.5rem 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 2px solid var(--glass-border);
+            border-radius: 8px;
+            position: relative;
+            padding-left: 3rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .checklist li::before {
+            content: '✓';
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1.5rem;
+            height: 1.5rem;
+            background: var(--coral-accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .feature {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 2px solid var(--glass-border);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature h4 {
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-icon {
+            font-size: 1.5rem;
+        }
+
+        .pill {
+            display: inline-block;
+            background: var(--coral-accent);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .pill.blue {
+            background: var(--blue-light);
+        }
+
+        .pill.green {
+            background: #10B981;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, var(--blue-primary) 0%, var(--blue-light) 100%);
+            color: white;
+            padding: 3rem;
+            border-radius: 16px;
+            text-align: center;
+            margin: 2rem 0;
+            box-shadow: 0 8px 32px rgba(59, 92, 201, 0.4);
+        }
+
+        .cta-section h2 {
+            color: white;
+            margin-top: 0;
+        }
+
+        .cta-section p {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: var(--coral-accent);
+            color: white;
+            padding: 1rem 3rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 16px rgba(251, 124, 74, 0.3);
+        }
+
+        .cta-button:hover {
+            background: var(--coral-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(251, 124, 74, 0.4);
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .resource-link {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--coral-accent);
+            font-weight: 500;
+            color: white;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .footer {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 2px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            background: rgba(59, 92, 201, 0.2);
+            color: var(--blue-light);
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin: 0.25rem;
+            border: 1px solid var(--blue-light);
+        }
+
+        .stat {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 12px;
+            margin: 1rem 0;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--coral-accent);
+            display: block;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+        }
+
+        ul {
+            margin: 1rem 0 1rem 2rem;
+            line-height: 1.8;
+        }
+
+        ul li {
+            margin: 0.5rem 0;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        strong {
+            color: white;
+            font-weight: 600;
+        }
+
+        em {
+            color: var(--coral-light);
+        }
+
+        .personal-note {
+            background: rgba(251, 124, 74, 0.1);
+            border-left: 4px solid var(--coral-accent);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 8px;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .cheat-sheet {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid #10B981;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 12px;
+        }
+
+        .cheat-sheet h3 {
+            color: #10B981;
+            margin-top: 0;
+        }
+
+        @media print {
+            .page {
+                margin: 0;
+                page-break-after: always;
+            }
+            
+            body {
+                background: linear-gradient(135deg, var(--dark-bg-1) 0%, var(--dark-bg-2) 50%, var(--dark-bg-3) 100%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- COVER PAGE -->
+    <div class="page cover">
+        <div class="cover-content">
+            <div class="logo">OpenClawKit</div>
+            <div class="logo-sub">Your Personal AI Agent</div>
+            
+            <h1>Stop Paying $20/Month<br>for Someone Else's AI</h1>
+            <p class="cover-subtitle">I'll show you how to run Claude, GPT-4, and 200+ models on your own terms—privately, cheaply, and without vendor lock-in.</p>
+            
+            <div class="cover-badge">Free Guide • 2026 Edition</div>
+        </div>
+    </div>
+
+    <!-- PAGE 2: PERSONAL INTRO -->
+    <div class="page">
+        <h1>Let Me Tell You a Secret</h1>
+        
+        <p class="intro">
+            Six months ago, I was paying $60/month for ChatGPT Plus, Claude Pro, and Gemini Advanced. I had three different browser tabs open, constantly copy-pasting between them, losing context, and hitting rate limits at the worst possible times.
+        </p>
+
+        <p class="intro">
+            Then I discovered something that changed everything: <strong>you don't need to rent AI from big tech companies</strong>. You can run your own personal AI agent—locally, privately, with access to every major model—for less than $10/month.
+        </p>
+
+        <div class="personal-note">
+            <strong>Here's what nobody tells you:</strong> When you use ChatGPT or Claude.ai, you're not just paying for the AI. You're paying for convenience, yes—but you're also giving up privacy, control, and flexibility. Your conversations live on their servers. You're locked into whatever model they decide to offer. And when they raise prices or change terms? You're stuck.
+        </div>
+
+        <h2>What You're About to Learn</h2>
+        
+        <p>This isn't a technical manual. This is the guide I wish someone had given me when I started. I'm going to show you:</p>
+
+        <div class="feature-grid">
+            <div class="feature">
+                <h4>🔒 How to keep your data private</h4>
+                <p>Everything stays on your machine. No cloud storage, no data mining, no subpoenas.</p>
+            </div>
+            
+            <div class="feature">
+                <h4>💰 How to cut costs 70%+</h4>
+                <p>Pay only for what you use. Most users spend $5-15/month instead of $60.</p>
+            </div>
+            
+            <div class="feature">
+                <h4>🔓 How to avoid lock-in</h4>
+                <p>Switch between Claude, GPT-4, Gemini, and 200+ models instantly.</p>
+            </div>
+            
+            <div class="feature">
+                <h4>🛠️ How to give your AI real tools</h4>
+                <p>Not just chat—file access, code execution, web browsing, automation.</p>
+            </div>
+        </div>
+
+        <h2>Who This Guide Is For</h2>
+
+        <p><strong>You should read this if:</strong></p>
+        <ul>
+            <li>You're paying for ChatGPT/Claude Pro but feel like you're not getting your money's worth</li>
+            <li>You're frustrated by rate limits and context window restrictions</li>
+            <li>You care about privacy and don't want your conversations stored in the cloud</li>
+            <li>You want an AI that can actually DO things, not just chat</li>
+            <li>You're comfortable with a tiny bit of technical setup (like 15 minutes worth)</li>
+        </ul>
+
+        <div class="highlight-box">
+            <h3>🎯 The Bottom Line</h3>
+            <p>By the end of this guide, you'll know how to set up your own personal AI agent that costs less, knows more, and respects your privacy. And you'll wonder why you ever paid big tech companies to rent what you could have owned.</p>
+        </div>
+    </div>
+
+    <!-- PAGE 3: THE PROBLEM -->
+    <div class="page">
+        <h1>The Problem with Renting AI</h1>
+        
+        <p class="intro">
+            Let's talk about what you're actually getting when you pay $20/month for ChatGPT Plus or Claude Pro.
+        </p>
+
+        <h2>Rate Limits</h2>
+        <p>Ever hit the "You've reached your limit" message right in the middle of important work? That's not a technical limitation—that's a business decision. You're paying $20/month but still getting throttled.</p>
+
+        <div class="personal-note">
+            <strong>My wake-up call:</strong> I was debugging a critical production issue at 2 AM. ChatGPT cut me off after 10 messages in an hour. I had to wait. In the middle of an outage. That's when I realized: when you rent AI, you don't control it.
+        </div>
+
+        <h2>Privacy Theater</h2>
+        <p>Sure, OpenAI and Anthropic say they don't train on your data anymore (if you opt out, navigate through settings, accept terms...). But your conversations still live on their servers. Subject to subpoenas. Accessible to employees. Vulnerable to breaches.</p>
+
+        <p><strong>Real quote from security researcher:</strong> "OpenClaw offers privacy from big tech, but let's be honest—it creates a 'honey pot' for commodity malware if misconfigured." That's fair criticism. But here's the thing: <em>at least it's YOUR honey pot, on YOUR machine, under YOUR control.</em></p>
+
+        <h2>Model Lock-In</h2>
+        <p>Claude is better at coding. GPT-4 has better plugins. Gemini has the longest context window. But to use all three? That's $60/month, three different interfaces, and zero shared context between them.</p>
+
+        <h2>The "Tool Use" Lie</h2>
+        <p>ChatGPT can "browse the web"—when it feels like it, on approved sites, with restrictions. It can't:</p>
+        <ul>
+            <li>Read your local files</li>
+            <li>Execute code on your machine</li>
+            <li>Send emails for you</li>
+            <li>Automate your workflows</li>
+            <li>Remember context between sessions reliably</li>
+        </ul>
+
+        <p>It's not an assistant. It's a chatbot with delusions of grandeur.</p>
+
+        <div class="highlight-box">
+            <h3>💡 The Realization</h3>
+            <p>You're not paying $20/month for AI. You're paying $20/month for <em>convenience</em>—and giving up control, privacy, flexibility, and actual power in exchange.</p>
+            <p style="margin-top: 1rem;">There's a better way.</p>
+        </div>
+    </div>
+
+    <!-- PAGE 4: THE SOLUTION - OPENCLAW -->
+    <div class="page">
+        <h1>Meet OpenClaw: Your Personal AI Agent</h1>
+        
+        <p class="intro">
+            OpenClaw is what happens when you stop renting AI and start <em>owning</em> it. It runs locally on your machine (Mac, Windows, Linux, even a Raspberry Pi), connects to any AI model you want, and gives you complete control.
+        </p>
+
+        <h2>What Makes It Different</h2>
+
+        <div class="icon-card">
+            <div class="icon">🏠</div>
+            <div>
+                <h4>Local-First Architecture</h4>
+                <p>Your data stays on your machine. Conversations, memory files, API keys—everything lives locally. The AI models run on provider servers (Anthropic, OpenAI, etc.), but your <em>context</em> is yours.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">🔌</div>
+            <div>
+                <h4>Model Freedom via OpenRouter</h4>
+                <p>One API key gives you access to 200+ models: Claude (all versions), GPT-4, Gemini, Llama, Mistral, DeepSeek, and more. Switch models mid-conversation. Use Haiku for quick tasks, Opus for hard problems, Kimi for free long-context work.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">🛠️</div>
+            <div>
+                <h4>Real Tools, Not Toys</h4>
+                <p>OpenClaw can read files, write code, browse the web, send messages, manage your calendar, execute shell commands, and automate workflows. It's not pretending to be an assistant—it IS one.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">🧠</div>
+            <div>
+                <h4>Long-Term Memory</h4>
+                <p>Your agent maintains MEMORY.md (curated knowledge) and daily logs. It remembers what you've worked on, your preferences, past decisions, and lessons learned. Context persists across sessions.</p>
+            </div>
+        </div>
+
+        <div class="personal-note">
+            <strong>Why this matters:</strong> I have an agent named Aria who knows my coding style, remembers my project architecture, understands my family schedule, and can draft emails in my voice. She's not perfect—but she's <em>mine</em>. And she gets better every day because she remembers.
+        </div>
+
+        <h2>What Can It Actually Do?</h2>
+
+        <div class="card">
+            <h4>📊 Research & Analysis</h4>
+            <p>"Search for the top 5 AI coding tools launched in the past month, compare features, and create a markdown table."</p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">Done in 30 seconds. With sources. In a file you own.</p>
+        </div>
+
+        <div class="card">
+            <h4>💻 Coding Assistant</h4>
+            <p>"Review this PR, run the tests, check for security issues, and suggest improvements."</p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">It has access to your git repo. It can actually run the code. Not hypothetical—real execution.</p>
+        </div>
+
+        <div class="card">
+            <h4>📧 Communication</h4>
+            <p>"Check my email, summarize anything urgent, draft a response to the investor inquiry, and add the meeting to my calendar."</p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">All in one turn. No app switching. No copy-pasting.</p>
+        </div>
+
+        <div class="card">
+            <h4>🤖 Automation</h4>
+            <p>"Every morning at 6 AM, give me a briefing: top news, my calendar, unread emails, and anything that needs urgent attention."</p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">Set it once with a cron job. Wake up informed every day.</p>
+        </div>
+    </div>
+
+    <!-- PAGE 5: QUICK START CHEAT SHEET -->
+    <div class="page">
+        <h1>🚀 Quick Start Cheat Sheet</h1>
+        
+        <p class="intro">
+            Skip the theory. Here's the fastest path from zero to running your own AI agent.
+        </p>
+
+        <div class="cheat-sheet">
+            <h3>⏱️ The 15-Minute Setup</h3>
+            
+            <p><strong>Step 1:</strong> Create OpenRouter Account (2 minutes)</p>
+            <ul>
+                <li>Go to openrouter.ai</li>
+                <li>Sign up (free tier available)</li>
+                <li>Add $5-10 credits (or use free models)</li>
+                <li>Copy your API key</li>
+            </ul>
+
+            <p><strong>Step 2:</strong> Download OpenClaw (3 minutes)</p>
+            <ul>
+                <li>Visit openclawkit.ai</li>
+                <li>Download installer for your OS</li>
+                <li>Run installer, paste API key when prompted</li>
+                <li>Choose Claude 3.5 Sonnet as default model</li>
+            </ul>
+
+            <p><strong>Step 3:</strong> Test It (5 minutes)</p>
+            <ul>
+                <li>Open terminal: <code>openclaw chat "Hello! Tell me about yourself."</code></li>
+                <li>Try: <code>"Search the web for today's top AI news and summarize it."</code></li>
+                <li>Try: <code>"List files in my current directory and explain what they do."</code></li>
+            </ul>
+
+            <p><strong>Step 4:</strong> Connect Telegram (5 minutes - optional but recommended)</p>
+            <ul>
+                <li>Talk to your agent from anywhere</li>
+                <li>Get proactive notifications</li>
+                <li>Works on mobile</li>
+            </ul>
+        </div>
+
+        <h2>5 Workflows to Try First</h2>
+
+        <div class="card">
+            <h4>1. Morning Briefing</h4>
+            <p><strong>Prompt:</strong> "Check top news from TechCrunch and Hacker News, my calendar for today, and any unread emails. Give me a 2-minute briefing."</p>
+            <p><em>Why:</em> Starts your day informed without 20 minutes of app-hopping.</p>
+        </div>
+
+        <div class="card">
+            <h4>2. Research Assistant</h4>
+            <p><strong>Prompt:</strong> "I'm choosing between Next.js and SvelteKit for a new project. Search for recent comparisons, find GitHub star trends, and give me a recommendation with pros/cons."</p>
+            <p><em>Why:</em> Saves hours of research and gives you sources to verify.</p>
+        </div>
+
+        <div class="card">
+            <h4>3. Code Review</h4>
+            <p><strong>Prompt:</strong> "Review the last commit in this repo. Check for bugs, security issues, and suggest improvements. Run any tests if they exist."</p>
+            <p><em>Why:</em> Catches issues before they hit production. Real execution, not guessing.</p>
+        </div>
+
+        <div class="card">
+            <h4>4. Email Triage</h4>
+            <p><strong>Prompt:</strong> "Read my unread emails, categorize them (urgent/important/spam), and draft responses for anything time-sensitive."</p>
+            <p><em>Why:</em> Inbox zero without spending an hour reading.</p>
+        </div>
+
+        <div class="card">
+            <h4>5. Learning Partner</h4>
+            <p><strong>Prompt:</strong> "I'm learning Rust. Give me a coding challenge, check my solution, explain what I got wrong, and suggest improvements."</p>
+            <p><em>Why:</em> Interactive learning with instant feedback.</p>
+        </div>
+    </div>
+
+    <!-- PAGE 6: MODEL SELECTION GUIDE -->
+    <div class="page">
+        <h1>🧠 Which AI Model Should You Use?</h1>
+        
+        <p class="intro">
+            Here's the decision tree I use every day. Copy it, tweak it, make it yours.
+        </p>
+
+        <h2>The Simple Version</h2>
+
+        <div class="icon-card">
+            <div class="icon">⚖️</div>
+            <div>
+                <h4>Default: Claude 3.5 Sonnet</h4>
+                <p><strong>Use for:</strong> 80% of your tasks—coding, writing, research, automation</p>
+                <p><strong>Cost:</strong> $3 per million input tokens, $15 per million output tokens</p>
+                <p><strong>Why:</strong> Best balance of intelligence, speed, and cost. Excellent tool use. Reliable.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">⚡</div>
+            <div>
+                <h4>Fast & Cheap: Claude 3.5 Haiku</h4>
+                <p><strong>Use for:</strong> Quick lookups, heartbeat checks, simple summaries</p>
+                <p><strong>Cost:</strong> $0.80 / $4 per million tokens</p>
+                <p><strong>Why:</strong> 4x cheaper than Sonnet, still smart enough for routine tasks.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">🧠</div>
+            <div>
+                <h4>Hard Problems: Claude 3 Opus</h4>
+                <p><strong>Use for:</strong> Complex research, creative writing, architecture decisions</p>
+                <p><strong>Cost:</strong> $15 / $75 per million tokens</p>
+                <p><strong>Why:</strong> When you need the absolute best reasoning. Expensive but worth it for critical work.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">🎉</div>
+            <div>
+                <h4>Free Tier: Kimi K2.5 or Gemini Flash</h4>
+                <p><strong>Use for:</strong> Experimentation, learning, non-critical work</p>
+                <p><strong>Cost:</strong> FREE</p>
+                <p><strong>Why:</strong> Great for testing workflows without burning credits. Kimi has 1M context window.</p>
+            </div>
+        </div>
+
+        <h2>Real Cost Breakdown</h2>
+
+        <div class="card">
+            <h4>My Typical Day (Actual Numbers)</h4>
+            <ul>
+                <li><strong>Morning briefing (Haiku):</strong> ~5K tokens = $0.004</li>
+                <li><strong>5 coding tasks (Sonnet):</strong> ~50K tokens = $0.15</li>
+                <li><strong>1 architecture review (Opus):</strong> ~20K tokens = $0.30</li>
+                <li><strong>10 quick lookups (Haiku):</strong> ~10K tokens = $0.01</li>
+                <li><strong>2 research deep-dives (Kimi - free):</strong> $0.00</li>
+            </ul>
+            <p style="margin-top: 1rem;"><strong>Total: $0.46/day = ~$14/month</strong></p>
+            <p><em>Compare to:</em> ChatGPT Plus ($20) + Claude Pro ($20) + Gemini Advanced ($20) = $60/month with rate limits.</p>
+        </div>
+
+        <div class="personal-note">
+            <strong>Pro tip:</strong> Start with Sonnet for everything. Once you get a feel for token usage, optimize: use Haiku for routine stuff, Opus for hard problems, and free models for experimentation. You'll probably land around $10-15/month.
+        </div>
+    </div>
+
+    <!-- PAGE 7: WHAT I WISH I KNEW -->
+    <div class="page">
+        <h1>💡 What I Wish I Knew on Day One</h1>
+        
+        <p class="intro">
+            These are the insights that took me weeks to figure out. I'm giving them to you for free.
+        </p>
+
+        <h2>Security & Privacy</h2>
+
+        <div class="card">
+            <h4>⚠️ Don't Expose Your Instance to the Internet</h4>
+            <p>OpenClaw runs locally by default. Keep it that way unless you know what you're doing. If you must expose it (for remote access), use SSH tunneling or VPN—never direct port forwarding without authentication.</p>
+        </div>
+
+        <div class="card">
+            <h4>🔐 API Keys Stay Local</h4>
+            <p>Your OpenRouter key, email credentials, Telegram tokens—they're stored on your machine, not in the cloud. This is a feature, not a bug. Just back them up securely.</p>
+        </div>
+
+        <div class="card">
+            <h4>🛡️ The Privacy Trade-Off</h4>
+            <p>Yes, when you use Claude or GPT-4 via OpenRouter, your prompts still go to Anthropic/OpenAI. But your <em>context</em> (memory files, past conversations, personal data) stays local. You're trading "zero external API calls" for "access to frontier models." If you need 100% local, run Llama or Mistral locally—but you'll sacrifice capability.</p>
+        </div>
+
+        <h2>Model Selection Mistakes</h2>
+
+        <div class="card">
+            <h4>❌ Don't Use Opus for Everything</h4>
+            <p>I burned $200 in my first month using Opus as my default model. It's amazing, but overkill for 80% of tasks. Use Sonnet. Save Opus for when you're truly stuck.</p>
+        </div>
+
+        <div class="card">
+            <h4>✅ DO Mix Models in the Same Session</h4>
+            <p>OpenClaw lets you switch models mid-conversation. Use Haiku to triage your inbox, then switch to Sonnet when you find something that needs a thoughtful response. Game-changing for cost control.</p>
+        </div>
+
+        <h2>Workflow Design</h2>
+
+        <div class="card">
+            <h4>🔄 Automate the Boring Stuff</h4>
+            <p>If you do it every day, automate it with a cron job. Morning briefings, email triage, calendar sync—set it once, forget it forever. This is where the magic happens.</p>
+        </div>
+
+        <div class="card">
+            <h4>📝 Teach Your Agent About You</h4>
+            <p>Edit SOUL.md and USER.md. Tell it your preferences, work style, communication tone. The more context you give, the better it gets. My agent knows I prefer bullet points over paragraphs, that I'm Pacific time, and that I hate jargon. Yours should too.</p>
+        </div>
+
+        <div class="card">
+            <h4>🧠 Memory Management is Key</h4>
+            <p>Your agent maintains MEMORY.md (long-term knowledge) and daily logs. Review them weekly. Prune outdated info. Add lessons learned. Think of it like tending a garden—a little maintenance yields huge returns.</p>
+        </div>
+
+        <h2>Community Insights</h2>
+
+        <div class="personal-note">
+            <strong>From the OpenClaw community:</strong>
+            <ul>
+                <li>"Stop copy-pasting code into chatbots. Give your agent access to the actual repo."</li>
+                <li>"Your context and skills live on YOUR computer, not a walled garden."</li>
+                <li>"The first time your agent sends you a proactive notification about something you forgot—that's the moment you get it."</li>
+                <li>"Sandbox it if you're paranoid. But don't let fear stop you from trying."</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- PAGE 8: THE BIG COMPARISON -->
+    <div class="page">
+        <h1>OpenClaw vs. The Alternatives</h1>
+        
+        <p class="intro">
+            Let's be honest about the trade-offs. Here's how OpenClaw stacks up against ChatGPT, Claude.ai, and other hosted services.
+        </p>
+
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>OpenClaw</th>
+                    <th>ChatGPT Plus</th>
+                    <th>Claude Pro</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Cost</td>
+                    <td>$5-15/month<br>(pay per use)</td>
+                    <td>$20/month<br>(subscription)</td>
+                    <td>$20/month<br>(subscription)</td>
+                </tr>
+                <tr>
+                    <td>Rate Limits</td>
+                    <td>✅ None<br>(you control spend)</td>
+                    <td>❌ Yes<br>(40 msgs/3hrs)</td>
+                    <td>❌ Yes<br>(limited daily)</td>
+                </tr>
+                <tr>
+                    <td>Data Privacy</td>
+                    <td>✅ Local-first<br>Context stays on your machine</td>
+                    <td>⚠️ Cloud-based<br>Conversations on their servers</td>
+                    <td>⚠️ Cloud-based<br>Conversations on their servers</td>
+                </tr>
+                <tr>
+                    <td>Model Choice</td>
+                    <td>✅ 200+ models<br>Switch anytime</td>
+                    <td>❌ GPT-4 only<br>Locked in</td>
+                    <td>❌ Claude only<br>Locked in</td>
+                </tr>
+                <tr>
+                    <td>File Access</td>
+                    <td>✅ Full filesystem<br>Read/write/execute</td>
+                    <td>⚠️ Upload only<br>No persistent access</td>
+                    <td>⚠️ Upload only<br>No persistent access</td>
+                </tr>
+                <tr>
+                    <td>Automation</td>
+                    <td>✅ Cron jobs, workflows<br>Proactive agent</td>
+                    <td>❌ None<br>Reactive only</td>
+                    <td>❌ None<br>Reactive only</td>
+                </tr>
+                <tr>
+                    <td>Long-Term Memory</td>
+                    <td>✅ MEMORY.md + daily logs<br>Persistent context</td>
+                    <td>⚠️ Custom instructions<br>Limited</td>
+                    <td>⚠️ Projects<br>Limited</td>
+                </tr>
+                <tr>
+                    <td>Multi-Channel</td>
+                    <td>✅ CLI, Telegram, Discord<br>WhatsApp, Slack, etc.</td>
+                    <td>❌ Web + mobile app<br>That's it</td>
+                    <td>❌ Web + mobile app<br>That's it</td>
+                </tr>
+                <tr>
+                    <td>Setup Complexity</td>
+                    <td>⚠️ 15 min install<br>Requires basic tech comfort</td>
+                    <td>✅ Instant<br>Just sign up</td>
+                    <td>✅ Instant<br>Just sign up</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>The Honest Truth</h2>
+
+        <div class="card">
+            <h4>✅ Choose OpenClaw if:</h4>
+            <ul>
+                <li>You value privacy and control over convenience</li>
+                <li>You want to pay less and avoid rate limits</li>
+                <li>You need automation and proactive assistance</li>
+                <li>You're comfortable with 15 minutes of setup</li>
+                <li>You want access to multiple AI models</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h4>❌ Stick with ChatGPT/Claude if:</h4>
+            <ul>
+                <li>You want zero setup and instant gratification</li>
+                <li>You only chat occasionally (not daily workflows)</li>
+                <li>You're not comfortable with command-line tools</li>
+                <li>You don't care about data privacy</li>
+                <li>$20/month feels negligible to you</li>
+            </ul>
+        </div>
+
+        <div class="personal-note">
+            <strong>My take:</strong> If you're reading this guide, you probably care enough about AI to invest 15 minutes in setup. Do it. You'll save hundreds of dollars a year, gain privacy, and unlock capabilities ChatGPT can't touch. The juice is worth the squeeze.
+        </div>
+    </div>
+
+    <!-- PAGE 9: GETTING STARTED -->
+    <div class="page">
+        <h1>Alright, I'm Convinced. Now What?</h1>
+        
+        <p class="intro">
+            Here's your action plan. Don't overthink it—just start.
+        </p>
+
+        <h2>📋 Your Setup Checklist</h2>
+
+        <ul class="checklist">
+            <li><strong>Create OpenRouter Account</strong><br>Go to openrouter.ai → Sign up → Add $5-10 credits (or use free models)</li>
+            
+            <li><strong>Download OpenClaw</strong><br>Visit openclawkit.ai → Download for your OS → Run installer</li>
+            
+            <li><strong>Configure Your Agent</strong><br>Paste OpenRouter API key → Choose Claude 3.5 Sonnet as default</li>
+            
+            <li><strong>Test Basic Chat</strong><br>Terminal: <code>openclaw chat "Hello!"</code> → Verify it works</li>
+            
+            <li><strong>Try Web Search</strong><br><code>"Search for today's AI news"</code> → Confirm tool use works</li>
+            
+            <li><strong>Set Up Telegram (Optional)</strong><br>Follow guide to connect Telegram bot → Test mobile access</li>
+            
+            <li><strong>Customize Your Workspace</strong><br>Edit USER.md with your info → Edit SOUL.md with preferences</li>
+            
+            <li><strong>Create Your First Automation</strong><br>Set up morning briefing cron job → Wake up to AI-generated summary tomorrow</li>
+        </ul>
+
+        <h2>🎓 The First Week Plan</h2>
+
+        <div class="card">
+            <h4>Day 1: Get It Working</h4>
+            <p>Just install it and chat. Ask questions. Test web search. Get comfortable with the basics.</p>
+        </div>
+
+        <div class="card">
+            <h4>Day 2: Connect Telegram/Discord</h4>
+            <p>Talk to your agent from your phone. This is when it starts feeling like a real assistant.</p>
+        </div>
+
+        <div class="card">
+            <h4>Day 3: Set Up a Morning Briefing</h4>
+            <p>Create your first automation. Wake up to news + calendar + email summary.</p>
+        </div>
+
+        <div class="card">
+            <h4>Day 4-7: Build Real Workflows</h4>
+            <p>Use it for actual work. Code reviews. Research. Email triage. Find what saves you the most time.</p>
+        </div>
+
+        <div class="personal-note">
+            <strong>The moment you'll get it:</strong> It won't be during setup. It'll be three days in, when your agent sends you a proactive reminder about something you forgot, or surfaces an important email you would have missed. That's when you realize: this isn't a chatbot. It's an extension of you.
+        </div>
+    </div>
+
+    <!-- PAGE 10: RESOURCES -->
+    <div class="page">
+        <h1>Resources & What's Next</h1>
+
+        <h2>📚 Official Links</h2>
+
+        <div class="resources-grid">
+            <div class="resource-link">
+                <strong>OpenClawKit</strong><br>
+                openclawkit.ai
+            </div>
+            
+            <div class="resource-link">
+                <strong>Documentation</strong><br>
+                docs.openclaw.ai
+            </div>
+            
+            <div class="resource-link">
+                <strong>GitHub</strong><br>
+                github.com/openclaw/openclaw
+            </div>
+            
+            <div class="resource-link">
+                <strong>Community Discord</strong><br>
+                discord.gg/openclaw
+            </div>
+            
+            <div class="resource-link">
+                <strong>OpenRouter</strong><br>
+                openrouter.ai
+            </div>
+            
+            <div class="resource-link">
+                <strong>ClawHub (Skills)</strong><br>
+                clawhub.com
+            </div>
+        </div>
+
+        <h2>🎓 Next-Level Resources</h2>
+
+        <div class="card">
+            <h4>Video Tutorials</h4>
+            <ul>
+                <li>OpenClaw Quick Start (10 min walkthrough)</li>
+                <li>Building Your First Workflow (step-by-step)</li>
+                <li>Advanced Memory Management (power user tips)</li>
+                <li>Multi-Channel Setup Guide (Telegram + Discord + Slack)</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h4>Community Favorites</h4>
+            <ul>
+                <li>Email automation workflows</li>
+                <li>GitHub integration for code reviews</li>
+                <li>Calendar sync + smart scheduling</li>
+                <li>Twitter bot for personal brand building</li>
+            </ul>
+        </div>
+
+        <h2>🤝 Get Help & Share</h2>
+
+        <div class="icon-card">
+            <div class="icon">💬</div>
+            <div>
+                <h4>Join the Community</h4>
+                <p>5,000+ users in Discord. Share workflows, get help, discover new use cases. We're friendly, I promise.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">📧</div>
+            <div>
+                <h4>Email Support</h4>
+                <p>support@openclawkit.ai — Real humans, 24-hour response time.</p>
+            </div>
+        </div>
+
+        <div class="icon-card">
+            <div class="icon">🐛</div>
+            <div>
+                <h4>Report Issues</h4>
+                <p>GitHub Issues for bugs and feature requests. The project is open source—your feedback shapes it.</p>
+            </div>
+        </div>
+
+        <div class="personal-note">
+            <strong>One last thing:</strong> When you get your agent running, come say hi in Discord. Tell us what you built, what broke, what surprised you. We're all figuring this out together. And honestly? That's the fun part.
+        </div>
+    </div>
+
+    <!-- PAGE 11: FINAL CTA -->
+    <div class="page">
+        <div style="padding-top: 2rem;">
+            <h1 style="text-align: center; margin-bottom: 3rem;">Ready to Stop Renting?</h1>
+            
+            <div class="stat" style="max-width: 600px; margin: 2rem auto;">
+                <span class="stat-number">10,000+</span>
+                <span class="stat-label">People running their own AI agents</span>
+            </div>
+
+            <div class="stat" style="max-width: 600px; margin: 2rem auto;">
+                <span class="stat-number">$720/year</span>
+                <span class="stat-label">Average savings vs. ChatGPT + Claude + Gemini subscriptions</span>
+            </div>
+
+            <div class="cta-section">
+                <h2>Download OpenClaw Today</h2>
+                <p>Stop paying big tech to rent what you can own. Start with $5, keep your privacy, and unlock 200+ AI models on your terms.</p>
+                <div style="margin: 2rem 0;">
+                    <a href="https://openclawkit.ai" class="cta-button">Get Started Free</a>
+                </div>
+                <p style="font-size: 0.95rem; opacity: 0.9;">macOS • Windows • Linux • No subscription required</p>
+            </div>
+
+            <h2 style="margin-top: 3rem;">What You Get</h2>
+            
+            <div class="feature-grid">
+                <div class="feature">
+                    <h4>✅ Complete Privacy</h4>
+                    <p>Context stays local. You control your data.</p>
+                </div>
+                
+                <div class="feature">
+                    <h4>✅ 200+ AI Models</h4>
+                    <p>Claude, GPT-4, Gemini, Llama, and more.</p>
+                </div>
+                
+                <div class="feature">
+                    <h4>✅ Pay Per Use</h4>
+                    <p>$5-15/month typical. No subscriptions.</p>
+                </div>
+                
+                <div class="feature">
+                    <h4>✅ Real Automation</h4>
+                    <p>Cron jobs, workflows, proactive assistance.</p>
+                </div>
+
+                <div class="feature">
+                    <h4>✅ Multi-Channel</h4>
+                    <p>CLI, Telegram, Discord, WhatsApp, Slack.</p>
+                </div>
+                
+                <div class="feature">
+                    <h4>✅ Open Source</h4>
+                    <p>Community-driven. Transparent. Yours.</p>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 3rem;">
+                <h3>🎁 Limited Bonus for Early Adopters</h3>
+                <p><strong>This week only:</strong></p>
+                <ul>
+                    <li>$10 OpenRouter credits (code: OPENCLAW2026)</li>
+                    <li>Premium skills pack (GitHub, email, calendar automation)</li>
+                    <li>Priority Discord support channel access</li>
+                </ul>
+                <p style="margin-top: 1rem;"><em>Claim at checkout or join Discord for details.</em></p>
+            </div>
+
+            <div class="personal-note" style="margin-top: 3rem;">
+                <p><strong>Final thought:</strong> Six months ago, I was skeptical too. "Why go through the hassle when ChatGPT just works?"</p>
+                <p style="margin-top: 0.5rem;">Then I tried it. And I realized: ChatGPT doesn't "just work." It works on their terms, with their limits, at their price, with their access to my data.</p>
+                <p style="margin-top: 0.5rem;">OpenClaw works on <em>my</em> terms. And once you experience that freedom? You don't go back.</p>
+                <p style="margin-top: 0.5rem;">See you on the other side. 🦞</p>
+            </div>
+
+            <div class="footer">
+                <p><strong>OpenClawKit</strong> • openclawkit.ai • support@openclawkit.ai</p>
+                <p style="margin-top: 0.5rem;">© 2026 OpenClawKit. Built for people who value privacy, control, and not paying subscription fees forever.</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

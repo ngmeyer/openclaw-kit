@@ -10,7 +10,7 @@ VERSION=$(defaults read "$(pwd)/OpenClawKit/OpenClawKit/Info.plist" CFBundleShor
 DMG_NAME="${APP_NAME}-${VERSION}"
 BUILD_DIR="build"
 DMG_TEMP="dmg_temp"
-DEVELOPER_ID="Developer ID Application: Your Name (TEAMID)"  # Update this
+DEVELOPER_ID="Developer ID Application: Neal Meyer (DXK5RE42H2)"
 NOTARIZE_PROFILE="OpenClawKit"  # xcrun notarytool store-credentials
 
 # Parse arguments
