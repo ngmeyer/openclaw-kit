@@ -306,26 +306,78 @@ private struct PostInstallSkillCard: View {
 struct FloatingOrbsBackground: View {
     @State private var isAnimating = false
     
+    // Orb configuration: (size, x position %, y position %, color, animation delay)
+    private let orbs: [(CGFloat, Double, Double, Color, Double)] = [
+        // Large background orbs (blue/purple)
+        (400, 0.2, 0.3, Color(red: 0.2, green: 0.4, blue: 0.8).opacity(0.15), 0.0),
+        (350, 0.8, 0.6, Color(red: 0.4, green: 0.3, blue: 0.8).opacity(0.12), 2.0),
+        (300, 0.5, 0.8, Color(red: 0.3, green: 0.5, blue: 0.9).opacity(0.1), 4.0),
+        
+        // Medium orbs (coral/accent)
+        (200, 0.1, 0.7, Color(red: 0.9, green: 0.5, blue: 0.3).opacity(0.2), 1.0),
+        (180, 0.9, 0.2, Color(red: 0.8, green: 0.4, blue: 0.6).opacity(0.15), 3.0),
+        (220, 0.7, 0.9, Color(red: 0.6, green: 0.7, blue: 0.9).opacity(0.18), 5.0),
+        
+        // Small accent orbs
+        (120, 0.3, 0.5, Color(red: 0.4, green: 0.8, blue: 0.9).opacity(0.25), 0.5),
+        (100, 0.6, 0.3, Color(red: 0.7, green: 0.5, blue: 0.8).opacity(0.2), 2.5),
+        (80, 0.85, 0.75, Color(red: 0.9, green: 0.6, blue: 0.4).opacity(0.22), 4.5),
+        (60, 0.15, 0.15, Color(red: 0.5, green: 0.9, blue: 0.7).opacity(0.2), 6.0),
+    ]
+    
     var body: some View {
-        Canvas { context, size in
-            var rng = SystemRandomNumberGenerator()
-            
-            // Create gradient mesh background
-            for x in stride(from: 0, to: Int(size.width), by: 100) {
-                for y in stride(from: 0, to: Int(size.height), by: 100) {
-                    let rect = CGRect(x: CGFloat(x), y: CGFloat(y), width: 100, height: 100)
-                    let hue = Double(x + y) / Double(Int(size.width) + Int(size.height))
+        GeometryReader { geometry in
+            ZStack {
+                // Base dark gradient
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.05, green: 0.08, blue: 0.15),
+                        Color(red: 0.08, green: 0.10, blue: 0.20),
+                        Color(red: 0.06, green: 0.08, blue: 0.16)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                
+                // Animated orbs
+                ForEach(Array(orbs.enumerated()), id: \.offset) { index, orb in
+                    let (size, xPercent, yPercent, color, delay) = orb
                     
-                    context.fill(
-                        Path(ellipseIn: CGRect(x: CGFloat(x) + 25, y: CGFloat(y) + 25, width: 50, height: 50)),
-                        with: .color(
-                            Color(hue: hue, saturation: 0.3, brightness: 0.2)
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    color.opacity(0.8),
+                                    color.opacity(0.4),
+                                    color.opacity(0.0)
+                                ],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: size * 0.5
+                            )
                         )
-                    )
+                        .frame(width: size, height: size)
+                        .position(
+                            x: geometry.size.width * xPercent,
+                            y: geometry.size.height * yPercent
+                        )
+                        .blur(radius: size * 0.15)
+                        .scaleEffect(isAnimating ? 1.1 : 0.9)
+                        .opacity(isAnimating ? 1.0 : 0.7)
+                        .animation(
+                            Animation
+                                .easeInOut(duration: 4.0 + Double(index) * 0.5)
+                                .repeatForever(autoreverses: true)
+                                .delay(delay),
+                            value: isAnimating
+                        )
                 }
             }
         }
         .ignoresSafeArea()
+        .onAppear {
+            isAnimating = true
+        }
     }
 }
 

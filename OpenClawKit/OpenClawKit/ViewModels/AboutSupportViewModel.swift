@@ -115,6 +115,21 @@ class AboutSupportViewModel: ObservableObject {
     @Published var isResetting: Bool = false
     @Published var resetMessage: String?
     
+    // MARK: - Reset Button States
+    var hasPreferencesToReset: Bool {
+        let domain = Bundle.main.bundleIdentifier ?? "com.gearu.OpenClawKit"
+        guard let prefs = UserDefaults.standard.persistentDomain(forName: domain) else { return false }
+        return !prefs.isEmpty
+    }
+    
+    var hasLicenseToClear: Bool {
+        licenseService.isLicensed
+    }
+    
+    var hasDataToReset: Bool {
+        hasPreferencesToReset || hasLicenseToClear
+    }
+    
     // MARK: - Uninstall State
     @Published var uninstallService = UninstallService.shared
     @Published var showUninstallProgress: Bool = false
@@ -270,6 +285,9 @@ class AboutSupportViewModel: ObservableObject {
         UserDefaults.standard.removePersistentDomain(forName: domain)
         UserDefaults.standard.synchronize()
         
+        // Trigger object update to refresh button states
+        objectWillChange.send()
+        
         resetMessage = "Preferences reset successfully"
         isResetting = false
         showResetPrefsConfirm = false
@@ -283,6 +301,9 @@ class AboutSupportViewModel: ObservableObject {
         
         // Clear local license data
         licenseService.clearLicense()
+        
+        // Trigger object update to refresh button states
+        objectWillChange.send()
         
         resetMessage = "License cleared successfully"
         isResetting = false
@@ -300,6 +321,9 @@ class AboutSupportViewModel: ObservableObject {
         // Clear license (best effort deactivation)
         _ = await licenseService.deactivate()
         licenseService.clearLicense()
+        
+        // Trigger object update to refresh button states
+        objectWillChange.send()
         
         resetMessage = "Reset complete. Please restart the app."
         isResetting = false

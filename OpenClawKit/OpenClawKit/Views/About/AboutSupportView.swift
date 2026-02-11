@@ -646,6 +646,7 @@ struct AdvancedTabView: View {
                         description: "Clears all app preferences and settings",
                         buttonTitle: "Reset",
                         isDestructive: false,
+                        isDisabled: !viewModel.hasPreferencesToReset,
                         action: { viewModel.showResetPrefsConfirm = true }
                     )
                     
@@ -658,6 +659,7 @@ struct AdvancedTabView: View {
                         description: "Deactivates and removes license from this device",
                         buttonTitle: "Clear",
                         isDestructive: true,
+                        isDisabled: !viewModel.hasLicenseToClear,
                         action: { viewModel.showClearLicenseConfirm = true }
                     )
                     
@@ -670,6 +672,7 @@ struct AdvancedTabView: View {
                         description: "Clears all data and returns to setup wizard",
                         buttonTitle: "Reset All",
                         isDestructive: true,
+                        isDisabled: !viewModel.hasDataToReset,
                         action: { viewModel.showResetAllConfirm = true }
                     )
                 }
@@ -756,6 +759,7 @@ struct ResetOptionRow: View {
     let description: String
     let buttonTitle: String
     let isDestructive: Bool
+    let isDisabled: Bool
     let action: () -> Void
     
     var body: some View {
@@ -783,12 +787,16 @@ struct ResetOptionRow: View {
                         .font(.caption.weight(.medium))
                 }
                 .buttonStyle(DestructiveButtonStyle())
+                .disabled(isDisabled)
+                .opacity(isDisabled ? 0.5 : 1.0)
             } else {
                 Button(action: action) {
                     Text(buttonTitle)
                         .font(.caption.weight(.medium))
                 }
                 .buttonStyle(GlassButtonStyle())
+                .disabled(isDisabled)
+                .opacity(isDisabled ? 0.5 : 1.0)
             }
         }
     }
