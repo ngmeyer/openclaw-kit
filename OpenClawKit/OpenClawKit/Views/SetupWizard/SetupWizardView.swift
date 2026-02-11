@@ -13,7 +13,7 @@ struct SetupWizardView: View {
                 case .setup:
                     SetupWizardContent(viewModel: viewModel)
                 case .running:
-                    OpenClawBrowserView(viewModel: viewModel)
+                    ChatView()
                 }
             }
         }

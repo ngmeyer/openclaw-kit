@@ -76,6 +76,10 @@ struct OpenClawKitApp: App {
 
 // MARK: - App Delegate
 class AppDelegate: NSObject, NSApplicationDelegate {
+    private var menuBarStatusItem: MenuBarStatusItem?
+    private var updateCheckService: UpdateCheckService?
+    private var healthMonitor: HealthViewModel?
+    
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return true
     }
@@ -83,6 +87,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillFinishLaunching(_ notification: Notification) {
         // Disable automatic window restoration
         NSWindow.allowsAutomaticWindowTabbing = false
+        
+        // Initialize services
+        menuBarStatusItem = MenuBarStatusItem.shared
+        updateCheckService = UpdateCheckService.shared
+        healthMonitor = HealthViewModel.shared
+        
+        // Start periodic update checks (weekly)
+        Task {
+            updateCheckService?.checkForUpdates()
+        }
+        
+        // Start health monitoring
+        Task {
+            await healthMonitor?.runDiagnostics()
+        }
+        
+        print("✅ [AppDelegate] OpenClawKit services initialized")
     }
 }
 

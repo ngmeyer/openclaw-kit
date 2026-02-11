@@ -77,6 +77,7 @@ struct OpenClawBrowserView: View {
     @State private var isStartingGateway = true
     @State private var gatewayCheckAttempts = 0
     @State private var hasOpenedBrowser = false
+    @State private var showPostInstallGuide = true
     
     var body: some View {
         ZStack {
@@ -84,7 +85,20 @@ struct OpenClawBrowserView: View {
             Color(red: 0.08, green: 0.08, blue: 0.12)
                 .ignoresSafeArea()
             
-            if isStartingGateway {
+            if showPostInstallGuide && !isStartingGateway {
+                // Show post-install guide first
+                PostInstallView(
+                    onDismiss: {
+                        showPostInstallGuide = false
+                    },
+                    onStartChatting: {
+                        showPostInstallGuide = false
+                        if let url = URL(string: viewModel.defaultGatewayURL) {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
+                )
+            } else if isStartingGateway {
                 // Show starting gateway state while we verify it's running
                 StartingGatewayView()
             } else {
