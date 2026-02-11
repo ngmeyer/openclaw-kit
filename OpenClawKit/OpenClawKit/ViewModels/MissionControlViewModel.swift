@@ -21,6 +21,10 @@ class MissionControlViewModel: ObservableObject {
     @Published var showingAgentMonitor = false
     @Published var showingNewTaskSheet = false
     
+    // Gateway connection
+    @Published var isGatewayConnected = false
+    @Published var gatewayError: String?
+    
     // Planning state
     @Published var planningTask: MissionTask?
     @Published var currentQuestion: String = ""
@@ -34,6 +38,7 @@ class MissionControlViewModel: ObservableObject {
     // MARK: - Private Properties
     
     private let database = MissionDatabase.shared
+    private let gateway = OpenClawGateway.shared
     private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Initialization
@@ -41,6 +46,21 @@ class MissionControlViewModel: ObservableObject {
     init() {
         loadData()
         setupAutoRefresh()
+        setupGatewayObserver()
+    }
+    
+    /// Setup gateway connection observer
+    private func setupGatewayObserver() {
+        gateway.$isConnected
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$isGatewayConnected)
+        
+        gateway.$error
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] error in
+                self?.gatewayError = error?.localizedDescription
+            }
+            .store(in: &cancellables)
     }
     
     // MARK: - Data Loading
@@ -76,14 +96,43 @@ class MissionControlViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
-    /// Refresh agent status from OpenClaw
+    /// Refresh agent status from OpenClaw Gateway
     private func refreshAgentStatus() {
-        // TODO: Query OpenClaw Gateway for active sessions
-        // For now, just reload from database
-        do {
-            agents = try database.loadAgents()
-        } catch {
-            print("❌ Failed to refresh agents: \(error)")
+        Task {
+            do {
+                // First check gateway connection
+                await gateway.checkConnection()
+                
+                // Get active sessions from gateway
+                let sessions = try await gateway.listSessions(kinds: ["isolated", "subagent"])
+                
+                // Collect all updates first (non-mutating)
+                var updatedAgents = agents
+                
+                // Apply status updates based on gateway sessions
+                for session in sessions {
+                    if let agentIndex = updatedAgents.firstIndex(where: { $0.sessionKey == session.key }) {
+                        updatedAgents[agentIndex].updateStatus(session.status == "active" ? .working : .idle)
+                        updatedAgents[agentIndex].touch()
+                    }
+                }
+                
+                // Reload from database as well
+                let dbAgents = try database.loadAgents()
+                
+                // Merge: preserve runtime status from gateway
+                for dbAgent in dbAgents {
+                    if !updatedAgents.contains(where: { $0.id == dbAgent.id }) {
+                        updatedAgents.append(dbAgent)
+                    }
+                }
+                
+                // Apply all changes atomically (single assignment)
+                self.agents = updatedAgents
+                updateStatistics()
+            } catch {
+                print("❌ Failed to refresh agents: \(error)")
+            }
         }
     }
     
@@ -285,29 +334,119 @@ class MissionControlViewModel: ObservableObject {
     
     /// Spawn a new agent for a task
     func spawnAgent(for task: MissionTask, config: AgentSpawnConfig) async {
-        let agent = MissionAgent(
-            name: config.name,
-            role: config.role,
-            status: .idle,
-            capabilities: config.capabilities,
-            model: config.model
-        )
+        isLoading = true
         
         do {
-            // Save agent to database
+            // Create agent spawn request for gateway
+            let spawnRequest = AgentSpawnRequest(
+                task: config.generatePrompt(),
+                agentId: config.name,
+                model: config.model,
+                label: "mission-control:\(task.id.uuidString.prefix(8))",
+                capabilities: config.capabilities,
+                systemPrompt: """
+                You are \(config.name), a specialized AI agent with the role: \(config.role).
+                You are working autonomously on a task for Mission Control.
+                Report your progress clearly and provide deliverables when complete.
+                """
+            )
+            
+            // Spawn via OpenClaw Gateway
+            let response = try await gateway.spawnAgent(config: spawnRequest)
+            
+            // Create local agent record
+            let agent = MissionAgent(
+                name: config.name,
+                role: config.role,
+                sessionKey: response.sessionKey,
+                status: .working,
+                currentTask: task.id,
+                capabilities: config.capabilities,
+                model: config.model
+            )
+            
+            // Save to database
             try database.saveAgent(agent)
             agents.append(agent)
             
             // Assign task to agent
             assignTask(task, to: agent)
             
-            // TODO: Actually spawn agent via OpenClaw API
-            // await spawnOpenClawAgent(config: config, agent: agent)
+            // Subscribe to agent events for real-time updates
+            subscribeToAgentEvents(agent: agent)
             
-            print("✅ Spawned agent: \(config.name)")
+            print("✅ Spawned agent: \(config.name) with session: \(response.sessionKey)")
             
         } catch {
             self.error = .agentSpawnFailed(error.localizedDescription)
+            print("❌ Failed to spawn agent: \(error)")
+        }
+        
+        isLoading = false
+    }
+    
+    /// Subscribe to real-time events from an agent
+    private func subscribeToAgentEvents(agent: MissionAgent) {
+        guard let sessionKey = agent.sessionKey else { return }
+        
+        gateway.subscribeToEvents(sessionKey: sessionKey) { [weak self] event in
+            Task { @MainActor in
+                self?.handleAgentEvent(agent: agent, event: event)
+            }
+        }
+    }
+    
+    /// Handle incoming agent event
+    private func handleAgentEvent(agent: MissionAgent, event: SessionEvent) {
+        Task { @MainActor in
+            // Parse event and update agent/task status
+            switch event.type {
+            case "progress":
+                // Agent reported progress
+                if let data = event.data.data(using: .utf8),
+                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let message = json["message"] as? String {
+                    sendMessage(from: agent.id, to: nil, message: message, type: .update)
+                }
+                
+            case "complete":
+                // Agent completed task
+                if var agentToUpdate = agents.first(where: { $0.id == agent.id }) {
+                    agentToUpdate.completeTask()
+                    try? database.saveAgent(agentToUpdate)
+                    
+                    if let index = agents.firstIndex(where: { $0.id == agent.id }) {
+                        agents[index] = agentToUpdate
+                    }
+                    
+                    // Move task to review
+                    if let taskId = agent.currentTask,
+                       var task = tasks.first(where: { $0.id == taskId }) {
+                        task.moveTo(status: .review)
+                        try? database.saveTask(task)
+                        
+                        if let taskIndex = tasks.firstIndex(where: { $0.id == taskId }) {
+                            tasks[taskIndex] = task
+                        }
+                    }
+                }
+                
+                updateStatistics()
+                
+            case "error":
+                // Agent encountered error
+                if var agentToUpdate = agents.first(where: { $0.id == agent.id }) {
+                    agentToUpdate.updateStatus(.error)
+                    try? database.saveAgent(agentToUpdate)
+                    
+                    if let index = agents.firstIndex(where: { $0.id == agent.id }) {
+                        agents[index] = agentToUpdate
+                    }
+                }
+                
+            default:
+                break
+            }
         }
     }
     
@@ -348,23 +487,39 @@ class MissionControlViewModel: ObservableObject {
     
     /// Stop an agent
     func stopAgent(_ agent: MissionAgent) {
-        var updatedAgent = agent
-        updatedAgent.updateStatus(.offline)
-        updatedAgent.completeTask()
-        
-        do {
-            try database.saveAgent(updatedAgent)
+        Task {
+            isLoading = true
             
-            if let index = agents.firstIndex(where: { $0.id == agent.id }) {
-                agents[index] = updatedAgent
+            // Stop via gateway if session exists
+            if let sessionKey = agent.sessionKey {
+                do {
+                    try await gateway.stopSession(sessionKey: sessionKey)
+                    gateway.unsubscribeFromEvents()
+                } catch {
+                    print("⚠️ Failed to stop gateway session: \(error)")
+                    // Continue with local cleanup
+                }
             }
             
-            updateStatistics()
+            var updatedAgent = agent
+            updatedAgent.updateStatus(.offline)
+            updatedAgent.completeTask()
             
-            // TODO: Actually stop agent via OpenClaw API
+            do {
+                try database.saveAgent(updatedAgent)
+                
+                if let index = agents.firstIndex(where: { $0.id == agent.id }) {
+                    agents[index] = updatedAgent
+                }
+                
+                updateStatistics()
+                print("✅ Stopped agent: \(agent.name)")
+                
+            } catch {
+                self.error = .saveFailed(error.localizedDescription)
+            }
             
-        } catch {
-            self.error = .saveFailed(error.localizedDescription)
+            isLoading = false
         }
     }
     

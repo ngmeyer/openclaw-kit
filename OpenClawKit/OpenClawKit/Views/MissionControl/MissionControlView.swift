@@ -111,6 +111,23 @@ struct MissionControlView: View {
     
     private var footer: some View {
         HStack(spacing: 24) {
+            // Gateway status
+            HStack(spacing: 8) {
+                Circle()
+                    .fill(viewModel.isGatewayConnected ? Color.green : Color.red)
+                    .frame(width: 8, height: 8)
+                Text(viewModel.isGatewayConnected ? "Gateway Connected" : "Gateway Offline")
+                    .font(.system(size: 12))
+                    .foregroundColor(viewModel.isGatewayConnected ? .green : .red)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(Color.white.opacity(0.05))
+            .cornerRadius(8)
+            
+            Divider()
+                .frame(height: 24)
+            
             StatItem(label: "Total Tasks", value: "\(viewModel.stats.total)")
             StatItem(label: "In Progress", value: "\(viewModel.stats.inProgress)")
             StatItem(label: "Completed Today", value: "\(viewModel.stats.done)")

@@ -4,6 +4,7 @@ struct ChatView: View {
     @StateObject private var viewModel = ChatViewModel()
     @Environment(\.presentationMode) var presentationMode
     @State private var showingClearAlert = false
+    @State private var showingMissionControl = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -15,6 +16,9 @@ struct ChatView: View {
                 },
                 onClear: {
                     showingClearAlert = true
+                },
+                onMissionControl: {
+                    showingMissionControl = true
                 }
             )
             
@@ -85,6 +89,10 @@ struct ChatView: View {
         } message: {
             Text("This will delete all messages in this conversation. This action cannot be undone.")
         }
+        .sheet(isPresented: $showingMissionControl) {
+            MissionControlView()
+                .frame(minWidth: 1200, minHeight: 800)
+        }
         .onAppear {
             // Check connection status
             Task {
@@ -112,6 +120,7 @@ struct ChatHeaderView: View {
     let isConnected: Bool
     let onBack: () -> Void
     let onClear: () -> Void
+    let onMissionControl: () -> Void
     
     var body: some View {
         HStack {
@@ -145,14 +154,39 @@ struct ChatHeaderView: View {
             
             Spacer()
             
-            // Clear button
-            Button(action: onClear) {
-                Image(systemName: "trash")
-                    .font(.system(size: 16))
-                    .foregroundColor(.white.opacity(0.7))
+            HStack(spacing: 16) {
+                // Mission Control button
+                Button(action: onMissionControl) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "square.grid.3x3")
+                            .font(.system(size: 14))
+                        Text("Mission Control")
+                            .font(.system(size: 13, weight: .medium))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        LinearGradient(
+                            colors: [Color(hex: "#3B82F6"), Color(hex: "#8B5CF6")],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(8)
+                }
+                .buttonStyle(.plain)
+                .help("Open Mission Control dashboard")
+                
+                // Clear button
+                Button(action: onClear) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 16))
+                        .foregroundColor(.white.opacity(0.7))
+                }
+                .buttonStyle(.plain)
+                .help("Clear conversation")
             }
-            .buttonStyle(.plain)
-            .help("Clear conversation")
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
