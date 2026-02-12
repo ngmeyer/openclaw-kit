@@ -17,7 +17,7 @@ struct SetupWizardView: View {
                 }
             }
         }
-        .frame(minWidth: 900, minHeight: 750)
+        .frame(minWidth: 800, minHeight: 600)
         .preferredColorScheme(.dark)
     }
 }

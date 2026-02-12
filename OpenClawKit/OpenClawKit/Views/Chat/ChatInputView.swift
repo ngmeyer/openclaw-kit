@@ -6,20 +6,26 @@ struct ChatInputView: View {
     let onSend: () -> Void
     
     @FocusState private var isFocused: Bool
+    @State private var textEditorHeight: CGFloat = 36 // Start at single line height
+    
+    private let minHeight: CGFloat = 36  // Single line
+    private let maxHeight: CGFloat = 140 // ~7 lines
+    private let lineHeight: CGFloat = 20 // Approximate line height
     
     var body: some View {
         HStack(spacing: 12) {
-            // Text input
-            ZStack(alignment: .leading) {
-                // Placeholder
+            // Text input with auto-expanding height
+            ZStack(alignment: .topLeading) {
+                // Placeholder - only show when empty and not focused
                 if text.isEmpty {
                     Text("Type a message... (⌘↩ to send)")
                         .font(.system(size: 14))
                         .foregroundColor(.white.opacity(0.4))
                         .padding(.leading, 4)
+                        .padding(.top, 8)
                 }
                 
-                // Text editor
+                // Text editor with dynamic height
                 TextEditor(text: $text)
                     .font(.system(size: 14))
                     .foregroundColor(.white)
@@ -27,10 +33,13 @@ struct ChatInputView: View {
                     .background(Color.clear)
                     .focused($isFocused)
                     .disabled(!isEnabled)
-                    .frame(minHeight: 20, maxHeight: 100)
+                    .frame(height: textEditorHeight)
+                    .onChange(of: text) { newText in
+                        calculateHeight(for: newText)
+                    }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color(red: 0.12, green: 0.12, blue: 0.18))
@@ -40,22 +49,25 @@ struct ChatInputView: View {
                     .stroke(isFocused ? Color.blue.opacity(0.5) : Color.white.opacity(0.1), lineWidth: 1)
             )
             
-            // Send button
+            // Send button - vertically centered
             Button(action: handleSend) {
                 Image(systemName: "arrow.up.circle.fill")
-                    .font(.system(size: 32))
+                    .font(.system(size: 28))
                     .foregroundColor(canSend ? .blue : .gray.opacity(0.3))
             }
             .buttonStyle(.plain)
             .disabled(!canSend)
             .help("Send message (⌘↩)")
+            .frame(height: minHeight) // Align with minimum input height
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
         .background(Color(red: 0.1, green: 0.1, blue: 0.15))
         .onAppear {
             // Auto-focus input field
             isFocused = true
+            // Calculate initial height
+            calculateHeight(for: text)
         }
         // Keyboard shortcut: Cmd+Enter
         .onReceive(NotificationCenter.default.publisher(for: .cmdEnterPressed)) { _ in
@@ -63,6 +75,14 @@ struct ChatInputView: View {
                 handleSend()
             }
         }
+    }
+    
+    private func calculateHeight(for text: String) {
+        // Simple height calculation based on newlines and text length
+        let lines = text.components(separatedBy: .newlines).count
+        let estimatedLines = max(1, min(lines, 7))
+        let targetHeight = minHeight + CGFloat(estimatedLines - 1) * lineHeight
+        textEditorHeight = min(targetHeight, maxHeight)
     }
     
     private var canSend: Bool {

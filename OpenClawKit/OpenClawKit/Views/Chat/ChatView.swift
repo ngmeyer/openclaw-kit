@@ -240,5 +240,5 @@ struct ErrorBannerView: View {
 
 #Preview {
     ChatView()
-        .frame(width: 900, height: 750)
+        .frame(width: 800, height: 600) // Reduced initial height
 }

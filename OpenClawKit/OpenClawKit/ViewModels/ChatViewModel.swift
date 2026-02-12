@@ -11,18 +11,19 @@ class ChatViewModel: ObservableObject {
     @Published var isConnected: Bool = false
     
     // MARK: - Configuration
-    private let apiClient = OpenClawAPIClient()
+    private let gateway = OpenClawGateway.shared
     private var gatewayURL: String = "http://localhost:18789"
     private var authToken: String = ""
-    private let sessionID: String
+    private var chatSessionKey: String?
     
     // MARK: - Active Task Tracking
     private var streamingTask: Task<Void, Never>?
+    private var eventSubscription: AnyCancellable?
+    
+    // MARK: - First Use Tracking
+    private let hasSeenWelcomeKey = "openclawkit.chat.hasSeenWelcome"
     
     init() {
-        // Generate unique session ID for this chat instance
-        self.sessionID = "openclawkit-\(UUID().uuidString)"
-        
         // Load gateway configuration
         if let config = OpenClawAPIClient.loadGatewayConfig() {
             self.gatewayURL = config.url
@@ -37,10 +38,21 @@ class ChatViewModel: ObservableObject {
         // Load message history
         loadHistory()
         
-        // Add welcome message if this is a new conversation
-        if messages.isEmpty {
+        // Add welcome message only on first use
+        if messages.isEmpty && !hasSeenWelcome() {
             addWelcomeMessage()
+            markWelcomeSeen()
         }
+    }
+    
+    // MARK: - First Use Tracking
+    
+    private func hasSeenWelcome() -> Bool {
+        UserDefaults.standard.bool(forKey: hasSeenWelcomeKey)
+    }
+    
+    private func markWelcomeSeen() {
+        UserDefaults.standard.set(true, forKey: hasSeenWelcomeKey)
     }
     
     // MARK: - Message Sending
@@ -49,6 +61,31 @@ class ChatViewModel: ObservableObject {
     func sendMessage() async {
         let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, isConnected else { return }
+        
+        // Ensure we have a chat session
+        if chatSessionKey == nil {
+            do {
+                let response = try await gateway.spawnAgent(config: AgentSpawnRequest(
+                    task: "OpenClawKit Chat Session",
+                    agentId: "main",
+                    model: nil,
+                    label: "OpenClawKit Chat",
+                    capabilities: nil,
+                    systemPrompt: nil
+                ))
+                chatSessionKey = response.sessionKey
+                print("✅ Spawned chat session: \(response.sessionKey)")
+            } catch {
+                self.error = "Failed to start chat session: \(error.localizedDescription)"
+                print("❌ Failed to spawn chat session: \(error)")
+                return
+            }
+        }
+        
+        guard let sessionKey = chatSessionKey else {
+            self.error = "No active chat session"
+            return
+        }
         
         // Clear input immediately for better UX
         inputText = ""
@@ -77,48 +114,73 @@ class ChatViewModel: ObservableObject {
         // Cancel any existing streaming task
         streamingTask?.cancel()
         
-        // Start streaming response
+        // Start streaming response using Gateway
         streamingTask = Task {
             do {
-                let stream = apiClient.sendMessage(
-                    text,
-                    gatewayURL: gatewayURL,
-                    authToken: authToken,
-                    sessionID: sessionID
-                )
+                // Send message via Gateway
+                _ = try await gateway.sendMessage(sessionKey: sessionKey, message: text)
                 
-                // Accumulate response text
-                for try await delta in stream {
-                    // Check for cancellation
-                    guard !Task.isCancelled else {
-                        print("⚠️ Streaming task cancelled")
-                        break
-                    }
+                // Use the Gateway's chat method which handles streaming properly
+                await withCheckedContinuation { continuation in
+                    var accumulatedText = ""
                     
-                    // Update the assistant message with new text
-                    if let index = messages.firstIndex(where: { $0.id == assistantMessageID }) {
-                        messages[index].content += delta
-                    }
+                    gateway.chat(
+                        message: text,
+                        model: nil,
+                        sessionId: sessionKey,
+                        onChunk: { [weak self] delta in
+                            guard let self = self else { return }
+                            accumulatedText += delta
+                            Task { @MainActor in
+                                if let index = self.messages.firstIndex(where: { $0.id == assistantMessageID }) {
+                                    self.messages[index].content = accumulatedText
+                                }
+                            }
+                        },
+                        onComplete: { [weak self] in
+                            guard let self = self else {
+                                continuation.resume()
+                                return
+                            }
+                            Task { @MainActor in
+                                if let index = self.messages.firstIndex(where: { $0.id == assistantMessageID }) {
+                                    self.messages[index].isStreaming = false
+                                }
+                                self.saveHistory()
+                                self.isTyping = false
+                                continuation.resume()
+                            }
+                        },
+                        onError: { [weak self] error in
+                            guard let self = self else {
+                                continuation.resume()
+                                return
+                            }
+                            Task { @MainActor in
+                                self.error = error.localizedDescription
+                                if let index = self.messages.firstIndex(where: { $0.id == assistantMessageID }) {
+                                    self.messages[index].isStreaming = false
+                                    self.messages[index].content += "\n\n[Error: \(error.localizedDescription)]"
+                                }
+                                self.isTyping = false
+                                continuation.resume()
+                            }
+                        }
+                    )
                 }
-                
-                // Mark streaming as complete
-                if let index = messages.firstIndex(where: { $0.id == assistantMessageID }) {
-                    messages[index].isStreaming = false
-                }
-                
-                // Save to history
-                saveHistory()
                 
             } catch {
                 // Handle errors
                 self.error = error.localizedDescription
                 print("❌ Streaming error: \(error)")
                 
-                // Remove failed assistant message
-                messages.removeAll { $0.id == assistantMessageID }
+                // Mark message as failed but keep it
+                if let index = messages.firstIndex(where: { $0.id == assistantMessageID }) {
+                    messages[index].isStreaming = false
+                    messages[index].content += "\n\n[Error: Failed to get response]"
+                }
+                isTyping = false
             }
-            
-            isTyping = false
         }
     }
     
@@ -146,7 +208,10 @@ class ChatViewModel: ObservableObject {
     func clearConversation() {
         messages.removeAll()
         ChatMessage.clearHistory()
+        // Reset welcome flag so it shows again after clear
+        UserDefaults.standard.set(false, forKey: hasSeenWelcomeKey)
         addWelcomeMessage()
+        markWelcomeSeen()
         error = nil
         print("🗑️ Conversation cleared")
     }
