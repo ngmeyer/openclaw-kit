@@ -96,6 +96,53 @@ class MissionControlViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
+    /// Load agents from OpenClaw Gateway (on-demand when user opens Agent Monitor)
+    func loadAgentsFromGateway() {
+        Task {
+            do {
+                // First check gateway connection
+                await gateway.checkConnection()
+                
+                if !isGatewayConnected {
+                    self.error = .loadFailed("Gateway not connected")
+                    return
+                }
+                
+                // Get active sessions from gateway
+                let sessions = try await gateway.listSessions(kinds: ["isolated", "subagent"])
+                
+                // Convert sessions to MissionAgent objects
+                var gatewayAgents: [MissionAgent] = []
+                for session in sessions {
+                    let agent = MissionAgent(
+                        name: session.label ?? "Agent-\(session.key.prefix(8))",
+                        role: "worker",
+                        sessionKey: session.key,
+                        status: session.status == "active" ? .working : .idle
+                    )
+                    gatewayAgents.append(agent)
+                }
+                
+                // Merge with existing agents (preserve any manual/database agents)
+                var allAgents = gatewayAgents
+                for dbAgent in try database.loadAgents() {
+                    if !allAgents.contains(where: { $0.id == dbAgent.id }) {
+                        allAgents.append(dbAgent)
+                    }
+                }
+                
+                // Update agents atomically
+                self.agents = allAgents
+                updateStatistics()
+                
+                print("✅ Loaded \(gatewayAgents.count) agents from Gateway")
+            } catch {
+                print("❌ Failed to load agents from Gateway: \(error)")
+                self.error = .loadFailed(error.localizedDescription)
+            }
+        }
+    }
+    
     /// Refresh agent status from OpenClaw Gateway
     private func refreshAgentStatus() {
         Task {

@@ -64,6 +64,10 @@ struct AgentMonitorView: View {
         }
         .frame(width: 600, height: 700)
         .background(Color(hex: "#0A0A0F"))
+        .onAppear {
+            // Fetch real agents from Gateway when view opens (on-demand)
+            viewModel.loadAgentsFromGateway()
+        }
     }
     
     // MARK: - Header
@@ -82,6 +86,18 @@ struct AgentMonitorView: View {
             
             Spacer()
             
+            // Refresh button
+            Button(action: {
+                viewModel.loadAgentsFromGateway()
+            }) {
+                Image(systemName: "arrow.clockwise")
+                    .foregroundColor(.gray)
+                    .font(.system(size: 16))
+            }
+            .buttonStyle(.plain)
+            .help("Refresh agent list")
+            
+            // Close button
             Button(action: { dismiss() }) {
                 Image(systemName: "xmark.circle.fill")
                     .foregroundColor(.gray)

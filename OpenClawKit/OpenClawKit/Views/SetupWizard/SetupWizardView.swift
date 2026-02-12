@@ -825,8 +825,7 @@ struct SkillsSetupStepView: View {
                 if let skill = selectedSkill {
                     SkillDetailPanel(
                         skill: skill,
-                        userLocation: $viewModel.userLocation,
-                        isDetectingLocation: viewModel.isDetectingLocation
+                        userLocation: $viewModel.userLocation
                     )
                 }
             }
@@ -873,7 +872,6 @@ struct SkillListRow: View {
 struct SkillDetailPanel: View {
     let skill: SkillInfo
     @Binding var userLocation: String
-    let isDetectingLocation: Bool
     
     var body: some View {
         GlassCard(cornerRadius: 16, padding: 24) {
@@ -923,23 +921,15 @@ struct SkillDetailPanel: View {
                             .font(.caption.weight(.medium))
                             .foregroundColor(.white.opacity(0.6))
                         
-                        HStack {
-                            TextField("ZIP or City, State", text: $userLocation)
-                                .textFieldStyle(.plain)
-                                .padding(10)
-                                .background(Color.black.opacity(0.3))
-                                .cornerRadius(8)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                                )
-                            
-                            if isDetectingLocation {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                    .scaleEffect(0.7)
-                            }
-                        }
+                        TextField("ZIP or City, State", text: $userLocation)
+                            .textFieldStyle(.plain)
+                            .padding(10)
+                            .background(Color.black.opacity(0.3))
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            )
                         
                         Text("Optional — say \"weather in [city]\" anytime")
                             .font(.caption2)
@@ -1062,7 +1052,7 @@ struct APISetupStepView: View {
                             OpenRouterConnectionGuide(viewModel: viewModel)
                         case .anthropic:
                             AnthropicConnectionGuide(viewModel: viewModel)
-                        case .deepseek, .openAI:
+                        case .openAI:
                             GenericProviderGuide(viewModel: viewModel)
                         }
                     }

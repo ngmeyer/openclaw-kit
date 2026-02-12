@@ -109,56 +109,13 @@ struct GenericProviderGuide: View {
     @ViewBuilder
     private var providerBenefitsCard: some View {
         switch viewModel.selectedProvider {
-        case .deepseek:
-            deepSeekBenefitsCard
         case .openAI:
             openAIBenefitsCard
         default:
             EmptyView()
         }
     }
-    
-    private var deepSeekBenefitsCard: some View {
-        GlassCard(cornerRadius: 16, padding: 20) {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 8) {
-                    Image(systemName: "star.circle.fill")
-                        .foregroundColor(Color(red: 0.4, green: 0.6, blue: 1.0))
-                    Text("Why DeepSeek?")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    Spacer()
-                }
-                
-                VStack(alignment: .leading, spacing: 10) {
-                    BenefitRow(icon: "dollarsign.circle", text: "Extremely low pricing — great for high-volume use")
-                    BenefitRow(icon: "cpu", text: "DeepSeek V3 matches GPT-4 quality at fraction of cost")
-                    BenefitRow(icon: "globe", text: "Strong performance on coding and reasoning tasks")
-                    BenefitRow(icon: "bolt.fill", text: "Fast inference with efficient model architecture")
-                    BenefitRow(icon: "checkmark.shield", text: "Reliable uptime and consistent performance")
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12)
-                .background(Color.white.opacity(0.03))
-                .cornerRadius(8)
-                
-                HStack(alignment: .top, spacing: 8) {
-                    Text("💡")
-                    Text("Best choice if you want top-tier AI at the lowest cost")
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.7))
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12)
-                .background(Color(red: 0.4, green: 0.6, blue: 1.0).opacity(0.1))
-                .cornerRadius(8)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-    
+
     private var openAIBenefitsCard: some View {
         GlassCard(cornerRadius: 16, padding: 20) {
             VStack(alignment: .leading, spacing: 12) {
@@ -202,13 +159,6 @@ struct GenericProviderGuide: View {
 }
 
 // MARK: - Previews
-#Preview("DeepSeek Guide") {
-    GenericProviderGuide(viewModel: DeepSeekPreviewViewModel())
-        .frame(width: 450)
-        .padding()
-        .background(Color(red: 0.05, green: 0.05, blue: 0.1))
-}
-
 #Preview("OpenAI Guide") {
     GenericProviderGuide(viewModel: OpenAIPreviewViewModel())
         .frame(width: 450)
@@ -217,14 +167,6 @@ struct GenericProviderGuide: View {
 }
 
 // MARK: - Preview Helpers
-private class DeepSeekPreviewViewModel: SetupWizardViewModel {
-    override init() {
-        super.init()
-        self.apiKey = ""
-        self.selectedProvider = .deepseek
-    }
-}
-
 private class OpenAIPreviewViewModel: SetupWizardViewModel {
     override init() {
         super.init()

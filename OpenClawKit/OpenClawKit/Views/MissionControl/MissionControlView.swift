@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 struct MissionControlView: View {
     @StateObject private var viewModel = MissionControlViewModel()
     @State private var draggedTask: MissionTask?
+    @Environment(\.dismiss) var dismiss
     
     var body: some View {
         VStack(spacing: 0) {
@@ -103,6 +104,18 @@ struct MissionControlView: View {
                 .cornerRadius(8)
             }
             .buttonStyle(.plain)
+            
+            // Close Button
+            Button(action: {
+                dismiss()
+            }) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 20))
+                    .foregroundColor(.white.opacity(0.6))
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .help("Close Mission Control")
         }
         .padding(20)
     }

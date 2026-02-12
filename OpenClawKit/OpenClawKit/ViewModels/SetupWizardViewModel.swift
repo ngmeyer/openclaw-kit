@@ -153,82 +153,69 @@ let defaultSkills = defaultSkillsInfo.map { $0.id }
 enum AIProvider: String, CaseIterable, Identifiable {
     case openRouter = "OpenRouter"
     case anthropic = "Anthropic"
-    case deepseek = "DeepSeek"
     case openAI = "OpenAI"
-    
+
     var id: String { rawValue }
-    
+
     var icon: String {
         switch self {
         case .openRouter: return "arrow.triangle.2.circlepath"  // Routing/network concept
         case .anthropic: return "hexagon.fill"  // Geometric, modern feel
-        case .deepseek: return "wave.3.down"  // Deep/search concept
         case .openAI: return "circle.grid.2x2"  // AI/neural network concept
         }
     }
-    
+
     var description: String {
         switch self {
         case .openRouter: return "One API key, 100+ models - Best value"
         case .anthropic: return "Claude models - Best performance"
-        case .deepseek: return "DeepSeek V3 - Very low cost"
         case .openAI: return "GPT-4 and GPT-4o"
         }
     }
-    
+
     var defaultModel: String {
         switch self {
         case .openRouter: return "anthropic/claude-haiku-4-5"  // OpenRouter uses standard model IDs
         case .anthropic: return "anthropic/claude-haiku-4-5"
-        case .deepseek: return "deepseek/deepseek-chat"
         case .openAI: return "openai/gpt-4o"
         }
     }
-    
+
     var requiresApiKey: Bool {
         return true // All providers need API keys
     }
-    
+
     var apiKeyURL: String {
         switch self {
         case .openRouter: return "https://openrouter.ai/keys"
         case .anthropic: return "https://console.anthropic.com/settings/keys"
-        case .deepseek: return "https://platform.deepseek.com/api_keys"
         case .openAI: return "https://platform.openai.com/api-keys"
         }
     }
-    
+
     var setupInstructions: String {
         switch self {
         case .openRouter:
             return "1. Click the link below to open OpenRouter\n2. Sign in or create an account (GitHub/Google sign-in available)\n3. Add billing information (pay-as-you-go)\n4. Go to API Keys section\n5. Click 'Create Key' and copy it (starts with sk-or-v1-...)\n6. Paste it here\n\n💡 Tip: OpenRouter gives you access to 100+ models with one API key. Use anthropic/claude-haiku-4-5 for best results."
         case .anthropic:
             return "1. Click the link below to open Anthropic Console\n2. Sign in or create an account\n3. Add billing information (pay-as-you-go)\n4. Go to API Keys section\n5. Click 'Create Key' and copy it\n6. Paste it here\n\n💡 Tip: Anthropic offers competitive pricing. Claude Haiku is highly efficient for most tasks."
-        case .deepseek:
-            return "1. Click the link below to open DeepSeek Platform\n2. Sign in or create an account\n3. Add billing information\n4. Go to API Keys section\n5. Create a new API key and copy it\n6. Paste it here\n\n💡 Tip: DeepSeek offers extremely low pricing — great for high-volume use cases."
         case .openAI:
             return "1. Click the link below to open OpenAI Platform\n2. Sign in or create an account\n3. Add billing information (pay-as-you-go)\n4. Click 'Create new secret key'\n5. Copy the key and paste it here"
         }
     }
-    
+
     var isFree: Bool {
-        switch self {
-        case .openRouter, .anthropic, .deepseek, .openAI: return false
-        }
+        return false
     }
-    
+
     var isLowCost: Bool {
-        switch self {
-        case .deepseek: return true
-        case .openRouter, .anthropic, .openAI: return false
-        }
+        return false
     }
-    
+
     var pricingNote: String {
         switch self {
         case .openRouter: return "🌐 One key, 100+ models"
         case .anthropic: return "💳 Pay-as-you-go"
-        case .deepseek: return "💰 Very low cost"
         case .openAI: return "💳 Pay-as-you-go"
         }
     }
@@ -312,7 +299,6 @@ class SetupWizardViewModel: ObservableObject {
     
     // MARK: - Location (for weather skill)
     @Published var userLocation: String = ""
-    @Published var isDetectingLocation: Bool = false
     
     // MARK: - OpenClaw Defaults
     let defaultGatewayURL = "http://127.0.0.1:18789"
@@ -336,13 +322,11 @@ class SetupWizardViewModel: ObservableObject {
     private func defaultModelFallbacksForProvider() -> [String] {
         switch selectedProvider {
         case .openRouter:
-            return ["anthropic/claude-sonnet-4-5", "anthropic/claude-opus-4-5", "deepseek/deepseek-v2", "moonshot/kimi-k2.5"]
+            return ["anthropic/claude-sonnet-4-5", "anthropic/claude-opus-4-5", "openai/gpt-4o", "moonshot/kimi-k2.5"]
         case .anthropic:
-            return ["anthropic/claude-sonnet-4-5", "anthropic/claude-opus-4-5", "deepseek/deepseek-v2"]
-        case .deepseek:
-            return ["anthropic/claude-haiku-4-5", "deepseek/deepseek-v2", "moonshot/kimi-k2.5"]
+            return ["anthropic/claude-sonnet-4-5", "anthropic/claude-opus-4-5", "anthropic/claude-haiku-4-5"]
         case .openAI:
-            return ["anthropic/claude-haiku-4-5", "deepseek/deepseek-v2", "openai/gpt-4o"]
+            return ["openai/gpt-4o", "openai/gpt-4o-mini", "anthropic/claude-haiku-4-5"]
         }
     }
     
@@ -455,10 +439,8 @@ class SetupWizardViewModel: ObservableObject {
             // Reset state immediately - user will click Install to begin
             resetInstallationState()
         case .skillsSetup:
-            Task {
-                try? await Task.sleep(nanoseconds: 300_000_000)
-                detectUserLocation()
-            }
+            // Location field is empty by default — user can type manually
+            break
         default:
             break
         }
@@ -507,15 +489,13 @@ class SetupWizardViewModel: ObservableObject {
     
     var isApiKeyValid: Bool {
         guard !apiKey.isEmpty else { return false }
-        
+
         // Validate format based on provider
         switch selectedProvider {
         case .openRouter:
             return apiKey.hasPrefix("sk-or-v1-") && apiKey.count > 20
         case .anthropic:
             return apiKey.hasPrefix("sk-ant-") && apiKey.count > 20
-        case .deepseek:
-            return apiKey.count > 20 // DeepSeek doesn't have a standard prefix
         case .openAI:
             return apiKey.hasPrefix("sk-") && apiKey.count > 20
         }
@@ -645,7 +625,7 @@ class SetupWizardViewModel: ObservableObject {
                 installationStatus = "Checking Node.js..."
                 try? await Task.sleep(nanoseconds: 350_000_000)
                 guard !Task.isCancelled else { return }
-                updateComponent("Node.js", status: .installed, location: "/opt/homebrew/bin/node (v22.0.0)")
+                updateComponent("Node.js", status: .installed, location: "node (v22.0.0)")
                 installationProgress = 0.4
                 
                 // OpenClaw
@@ -654,7 +634,7 @@ class SetupWizardViewModel: ObservableObject {
                 installationStatus = "Installing OpenClaw..."
                 try? await Task.sleep(nanoseconds: 500_000_000)
                 guard !Task.isCancelled else { return }
-                updateComponent("OpenClaw", status: .installed, location: "/opt/homebrew/bin/openclaw")
+                updateComponent("OpenClaw", status: .installed, location: "/usr/local/bin/openclaw (npm)")
                 installationProgress = 0.7
                 
                 // Skills
@@ -759,10 +739,12 @@ class SetupWizardViewModel: ObservableObject {
                 installationStatus = "Installing skills..."
                 
                 var installedSkillNames: [String] = []
+                // Get npm global root for skill path
+                let npmGlobalPath = await runShellCommand("npm root -g")?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "/usr/local/lib/node_modules"
                 for skill in defaultSkills {
                     guard !Task.isCancelled else { return }
                     // Skills are bundled with OpenClaw, just need to verify they exist
-                    let skillPath = await runShellCommand("ls /opt/homebrew/lib/node_modules/openclaw/skills/\(skill)/SKILL.md 2>/dev/null")
+                    let skillPath = await runShellCommand("ls \(npmGlobalPath)/openclaw/skills/\(skill)/SKILL.md 2>/dev/null")
                     if skillPath != nil {
                         installedSkillNames.append(skill)
                     }
@@ -902,34 +884,6 @@ class SetupWizardViewModel: ObservableObject {
     func openDocumentation() {
         if let url = URL(string: "https://docs.openclaw.ai") {
             NSWorkspace.shared.open(url)
-        }
-    }
-    
-    // MARK: - Location Detection
-    
-    func detectUserLocation() {
-        guard userLocation.isEmpty else { return } // Don't override if already set
-        isDetectingLocation = true
-        
-        Task {
-            // Silently attempt location detection - don't show errors to user
-            // They can always type manually if this fails
-            let location = await LocationService.shared.detectLocation()
-            
-            if let loc = location {
-                let formatted = LocationService.shared.formatLocation(
-                    city: loc.city,
-                    region: loc.region,
-                    zip: loc.zip
-                )
-                await MainActor.run {
-                    userLocation = formatted
-                }
-            }
-            
-            await MainActor.run {
-                isDetectingLocation = false
-            }
         }
     }
     

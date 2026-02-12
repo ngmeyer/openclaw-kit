@@ -42,9 +42,10 @@ class SystemCheckService: SystemCheckServiceProtocol {
         let whichResult = await runShellCommand("which node")
         print("🔍 [NodeCheck] which node: \(whichResult ?? "nil")")
         
-        // Also check common paths directly
-        let directCheck = await runShellCommand("ls -la /opt/homebrew/bin/node 2>/dev/null || echo 'not found'")
-        print("🔍 [NodeCheck] Direct /opt/homebrew/bin/node: \(directCheck ?? "nil")")
+        // Also check common npm global paths directly
+        let npmGlobalPath = await runShellCommand("npm root -g")?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "/usr/local/lib/node_modules"
+        let directCheck = await runShellCommand("ls -la /usr/local/bin/node 2>/dev/null || ls -la /usr/bin/node 2>/dev/null || echo 'not found'")
+        print("🔍 [NodeCheck] Direct node check: \(directCheck ?? "nil")")
         
         let result = await runShellCommand("node --version")
         print("🔍 [NodeCheck] node --version result: \(result ?? "nil")")
